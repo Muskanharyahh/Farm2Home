@@ -26,8 +26,8 @@ function loadCartData() {
     
     if (cart.length === 0) {
         console.warn('No items in cart');
-        alert('No items found. Redirecting to home.');
-        window.location.href = '/';
+        alert('No items found. Redirecting to catalog.');
+        window.location.href = '../prod-catalog/index.html';
     }
 }
 
@@ -55,8 +55,16 @@ function renderCarouselItems() {
 
         const itemTotal = (item.price * item.quantity).toFixed(2);
         
-        // Fix image path - make it relative to root
-        const imagePath = item.image.startsWith('/') ? item.image : `/${item.image}`;
+        // Fix image path - convert from prod-catalog relative path to checkout relative path
+        // Images are stored as ../images/vegetables/tomato.png from prod-catalog
+        // From checkout, we need ../../images/vegetables/tomato.png
+        let imagePath = item.image;
+        if (imagePath.startsWith('../images')) {
+            imagePath = '.' + imagePath; // Convert ../ to ../../
+        } else if (!imagePath.startsWith('../../')) {
+            imagePath = '../../' + imagePath; // Fallback for any other relative paths
+        }
+        
         const fallbackImage = `https://via.placeholder.com/320x320/6b8e23/ffffff?text=${encodeURIComponent(item.name)}`;
 
         itemEl.innerHTML = `
@@ -130,7 +138,7 @@ function nextStep() {
         if (validateShippingForm()) {
             collectShippingData();
             // Redirect to payment page
-            window.location.href = '/checkout/payment.html';
+            window.location.href = 'payment.html';
         }
     } else if (currentStep === 2) {
         // Validate billing form
@@ -326,7 +334,7 @@ function backToHome() {
     localStorage.removeItem('checkoutCart');
     localStorage.removeItem('shippingData');
     localStorage.removeItem('billingData');
-    window.location.href = '/';
+    window.location.href = '../prod-catalog/index.html';
 }
 
 // Download receipt
@@ -364,6 +372,6 @@ function downloadReceipt() {
 // Go back button
 function goBack() {
     if (confirm('Are you sure you want to go back? Your checkout progress will be lost.')) {
-        window.location.href = '/';
+        window.location.href = '../prod-catalog/index.html';
     }
 }

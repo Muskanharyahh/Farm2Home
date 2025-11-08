@@ -28,7 +28,7 @@ function loadCartData() {
     if (cart.length === 0) {
         console.warn('No items in cart');
         alert('No items found. Redirecting to checkout.');
-        window.location.href = '/checkout/index.html';
+        window.location.href = 'index.html';
     }
 }
 
@@ -276,10 +276,15 @@ function processPayment(method) {
     }
 
     // Redirect to confirmation page
-    window.location.href = '/checkout/confirmation.html';
+    // For now, show success and redirect to catalog
+    alert('Order placed successfully! Your items will be delivered soon.');
+    localStorage.removeItem('checkoutCart');
+    localStorage.removeItem('shippingData');
+    localStorage.removeItem('billingData');
+    window.location.href = '../prod-catalog/index.html';
 }
 
 // Go back
 function goBack() {
-    window.location.href = '/checkout/index.html';
+    window.location.href = 'index.html';
 }

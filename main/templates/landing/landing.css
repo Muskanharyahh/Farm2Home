@@ -1,11 +1,5 @@
 /* Landing Page Styles */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 :root {
     --primary-teal: #3d9c9c;
     --light-teal: #5faea9;
@@ -18,12 +12,7 @@
     --light-bg: #f8f8f8;
 }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    color: var(--text-dark);
-    line-height: 1.6;
-    overflow-x: hidden;
-}
+/* No need to redefine body font - using global typography */
 
 /* ===== NAVIGATION ===== */
 .navbar {

@@ -17,13 +17,11 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    /* Using global typography font-family */
     background: linear-gradient(135deg, #e8f5e9 0%, #b8e0c2 45%, #a1d6b3 70%, #8ccfa5 100%);
     background-attachment: fixed;
     color: var(--text-dark);
     overflow-x: hidden;
-    margin: 0;
-    padding: 0;
 }
 
 .checkout-container {

@@ -1140,31 +1140,35 @@ function createProductListItem(product) {
     
     const quantity = productQuantities[product.id] || 0;
     
-    // Create star rating (mock)
-    const stars = '★★★★★';
-    const reviews = Math.floor(Math.random() * 50) + 5; // Mock review count
-    
     item.innerHTML = `
         <img src="${product.image}" alt="${product.name}" class="product-list-image" onerror="this.src='https://via.placeholder.com/150/6b8e23/ffffff?text=${product.name}'">
         
         <div class="product-list-middle">
             <div class="product-list-name">${product.name}</div>
             <div class="product-list-variety">${product.variety}</div>
-            <div class="product-list-rating">
-                <span class="stars">${stars}</span>
-                <span class="review-count">${reviews} reviews</span>
-            </div>
             <div class="product-list-description">Fresh ${product.category} from Pakistani farms, ${product.season === 'year-round' ? 'available all year' : 'seasonal produce'}.</div>
-            <a href="#" class="product-list-link">View details →</a>
         </div>
         
         <div class="product-list-right">
             <div class="product-list-price">Rs. ${product.price}/kg</div>
+            <div class="product-list-quantity">
+                <button class="qty-btn qty-decrease" onclick="decreaseQuantity(${product.id}); updateListView(${product.id})">−</button>
+                <span class="qty-value" id="list-qty-${product.id}">${quantity}</span>
+                <button class="qty-btn qty-increase" onclick="increaseQuantity(${product.id}); updateListView(${product.id})">+</button>
+            </div>
             <button class="product-list-cart-btn" onclick="addToCart(${product.id})">Add to Cart</button>
         </div>
     `;
     
     return item;
+}
+
+// Update list view quantity display
+function updateListView(productId) {
+    const quantityElement = document.getElementById(`list-qty-${productId}`);
+    if (quantityElement) {
+        quantityElement.textContent = productQuantities[productId];
+    }
 }
 
 // ===============================================
@@ -1178,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Cart close button
-    const cartCloseBtn = document.querySelector('.cart-close');
+    const cartCloseBtn = document.querySelector('.cart-close-btn');
     if (cartCloseBtn) {
         cartCloseBtn.addEventListener('click', closeCart);
     }
@@ -1200,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Save cart to localStorage before redirecting
             localStorage.setItem('checkoutCart', JSON.stringify(cart));
             // Redirect to checkout page
-            window.location.href = '/checkout/index.html';
+            window.location.href = '../checkout/index.html';
         });
     }
     

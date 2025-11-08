@@ -4,11 +4,6 @@
    ======================================== */
 
 /* Reset & Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
 :root {
     /* Soft Pastel Greens */
@@ -37,12 +32,9 @@
 }
 
 body {
-    font-family: 'Poppins', 'Inter', -apple-system, sans-serif;
+    /* Using global typography font-family */
     background: linear-gradient(180deg, #F9FBF8 0%, #F2F6F0 100%);
     color: var(--text-dark);
-    line-height: 1.6;
-    font-weight: 400;
-    letter-spacing: 0.3px;
 }
 
 /* ========================================
