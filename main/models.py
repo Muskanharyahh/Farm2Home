@@ -15,7 +15,7 @@ class Product(models.Model):
     product_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return self.name
@@ -65,7 +65,7 @@ class Cart(models.Model):
     cart_id = models.AutoField(primary_key=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="cart")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1) # i have added extra (not in erd)
 
     class Meta:
         unique_together = ('customer', 'product')  # Prevent duplicate cart items

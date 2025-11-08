@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - Farm2Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../global-typography.css">
-    <link rel="stylesheet" href="../form-overrides.css">
-    <link rel="stylesheet" href="checkout.css">
-    <link rel="stylesheet" href="payment.css">
+    <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/payment.css' %}">
 </head>
 <body>
     <div class="checkout-container">
@@ -191,6 +190,6 @@
         </div>
     </div>
 
-    <script src="payment.js"></script>
+    <script src="{% static 'js/payment.js' %}"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farm2Home - Fresh Farm to Your Door</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../global-typography.css">
-    <link rel="stylesheet" href="../form-overrides.css">
-    <link rel="stylesheet" href="landing.css">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
 </head>
 <body>
     <!-- Navigation -->
@@ -25,7 +24,7 @@
                 <li><a href="#contact">Contact</a></li>
                 <li><button class="auth-btn login-btn" onclick="openLoginModal()">Login</button></li>
                 <li><button class="auth-btn signup-btn" onclick="openSignupModal()">Sign Up</button></li>
-                <li><a href="../prod-catalog/index.html" class="shop-btn">Shop Now</a></li>
+                <li><a href="{% url 'main:catalog' %}" class="shop-btn">Shop Now</a></li>
             </ul>
             <div class="hamburger">
                 <span></span>
@@ -45,7 +44,7 @@
                 </h1>
                 <p class="hero-subtitle">Directly to your table, no middleman. Just pure, organic goodness.</p>
                 <div class="hero-buttons">
-                    <button class="btn btn-primary" onclick="window.location.href='../prod-catalog/index.html'">
+                    <button class="btn btn-primary" onclick="window.location.href='{% url 'main:catalog' %}'">
                         Explore Products
                         <i class="fas fa-arrow-right"></i>
                     </button>
@@ -55,7 +54,7 @@
                 </div>
             </div>
             <div class="hero-image">
-                <img src="../images/vegetables/carrot.png" alt="Fresh Vegetables" class="hero-img">
+                <img src="{% static 'images/vegetables/carrot.png' %}" alt="Fresh Vegetables" class="hero-img">
             </div>
         </div>
         <div class="scroll-indicator">
@@ -132,22 +131,22 @@
         <div class="showcase-container">
             <div class="showcase-slider">
                 <div class="slider-item active">
-                    <img src="../images/vegetables/tomato.png" alt="Tomato">
+                    <img src="{% static 'images/vegetables/tomato.png' %}" alt="Tomato">
                     <h3>Fresh Tomatoes</h3>
                     <p>Juicy and red, perfect for salads and cooking</p>
                 </div>
                 <div class="slider-item">
-                    <img src="../images/fruits/pineapple.png" alt="Pineapple">
+                    <img src="{% static 'images/fruits/pineapple.png' %}" alt="Pineapple">
                     <h3>Tropical Pineapple</h3>
                     <p>Sweet and refreshing tropical goodness</p>
                 </div>
                 <div class="slider-item">
-                    <img src="../images/vegetables/carrot.png" alt="Carrot">
+                    <img src="{% static 'images/vegetables/carrot.png' %}" alt="Carrot">
                     <h3>Organic Carrots</h3>
                     <p>Crunchy and nutritious for healthy living</p>
                 </div>
                 <div class="slider-item">
-                    <img src="../images/herbs/basil.png" alt="Basil">
+                    <img src="{% static 'images/herbs/basil.png' %}" alt="Basil">
                     <h3>Fresh Basil</h3>
                     <p>Aromatic herbs for your favorite dishes</p>
                 </div>
@@ -164,7 +163,7 @@
         </div>
 
         <div class="showcase-cta">
-            <button class="btn btn-primary" onclick="window.location.href='../prod-catalog/index.html'">
+            <button class="btn btn-primary" onclick="window.location.href='{% url 'main:catalog' %}'">
                 Browse All Products
                 <i class="fas fa-arrow-right"></i>
             </button>
@@ -186,7 +185,7 @@
                 </ul>
             </div>
             <div class="about-image">
-                <img src="../images/fruits/guava.png" alt="Fresh Produce" class="about-img">
+                <img src="{% static 'images/fruits/guava.png' %}" alt="Fresh Produce" class="about-img">
             </div>
         </div>
     </section>
@@ -196,7 +195,7 @@
         <div class="cta-content">
             <h2>Ready to Experience Fresh?</h2>
             <p>Join thousands of happy customers enjoying farm-fresh produce delivered to their door</p>
-            <button class="btn btn-primary btn-large" onclick="window.location.href='../prod-catalog/index.html'">
+            <button class="btn btn-primary btn-large" onclick="window.location.href='{% url 'main:catalog' %}'">
                 Start Shopping
                 <i class="fas fa-arrow-right"></i>
             </button>
@@ -331,7 +330,7 @@
                 <ul>
                     <li><a href="#home">Home</a></li>
                     <li><a href="#products">Products</a></li>
-                    <li><a href="../prod-catalog/index.html">Shop</a></li>
+                    <li><a href="{% url 'main:catalog' %}">Shop</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </div>
@@ -350,7 +349,7 @@
         </div>
     </footer>
 
-    <script src="authentication.js"></script>
-    <script src="landing.js"></script>
+    <script src="{% static 'js/authentication.js' %}"></script>
+    <script src="{% static 'js/landing.js' %}"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order History - Farm2Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../global-typography.css">
-    <link rel="stylesheet" href="../form-overrides.css">
-    <link rel="stylesheet" href="account.css">
-    <link rel="stylesheet" href="orders.css">
+    <link rel="stylesheet" href="{% static 'css/account.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
 </head>
 <body>
     <!-- Header -->
@@ -48,27 +47,27 @@
 
             <!-- Navigation Menu -->
             <nav class="sidebar-nav">
-                <a href="index.html" class="nav-item">
+                <a href="{% url 'main:account_home' %}" class="nav-item">
                     <i class="fas fa-th-large"></i>
                     <span>OVERVIEW</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
-                <a href="orders.html" class="nav-item active">
+                <a href="{% url 'main:account_orders' %}" class="nav-item active">
                     <i class="fas fa-box"></i>
                     <span>ORDERS</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
-                <a href="addresses.html" class="nav-item">
+                <a href="{% url 'main:account_addresses' %}" class="nav-item">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>ADDRESSES</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
-                <a href="payment.html" class="nav-item">
+                <a href="{% url 'main:account_payment' %}" class="nav-item">
                     <i class="fas fa-credit-card"></i>
                     <span>PAYMENT</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
-                <a href="settings.html" class="nav-item">
+                <a href="{% url 'main:account_settings' %}" class="nav-item">
                     <i class="fas fa-cog"></i>
                     <span>SETTINGS</span>
                     <i class="fas fa-chevron-right"></i>
@@ -325,7 +324,7 @@
                 </div>
                 <h3>No Orders Found</h3>
                 <p>You don't have any orders matching the selected filter.</p>
-                <a href="../prod-catalog/index.html" class="empty-btn">
+                <a href="{% url 'main:catalog' %}" class="empty-btn">
                     START SHOPPING
                     <i class="fas fa-arrow-right"></i>
                 </a>
@@ -333,7 +332,7 @@
         </main>
     </div>
 
-    <script src="account.js"></script>
-    <script src="orders.js"></script>
+    <script src="{% static 'js/account.js' %}"></script>
+    <script src="{% static 'js/orders.js' %}"></script>
 </body>
 </html>
