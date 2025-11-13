@@ -1,10 +1,286 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import json
+from django.shortcuts import render
+from rest_framework import viewsets, status
+from rest_framework.decorators import action, api_view
+from rest_framework.response import Response
+from django.db.models import Q
+from .models import Product, Inventory, Customer, Order, OrderItem, Cart
+from .serializers import (
+    ProductSerializer, ProductListSerializer, 
+    ProductCatalogSerializer,
+    InventorySerializer, CustomerSerializer,
+    OrderSerializer, OrderCreateSerializer,
+    CartSerializer
+)
+
+# ==================== API VIEWS ====================
+
+@api_view(['GET'])
+def catalog_products_api(request):
+    """
+    API endpoint specifically for product catalog page
+    Returns products in the exact format expected by script.js
+    
+    Supported Query Parameters:
+    - category: Filter by category (vegetables, fruits, herbs)
+    - season: Filter by season (summer, winter, year-round)
+    - in_stock: Filter only in-stock items (true/false)
+    - search: Search by name or local name
+    - price_min: Minimum price filter
+    - price_max: Maximum price filter
+    - sort: Sort order (price_low, price_high, name_asc, name_desc, featured)
+    
+    Returns: JSON array of products matching frontend structure
+    """
+    # Start with active products and optimize query with select_related
+    products = Product.objects.filter(is_active=True).select_related('inventory')
+    
+    # ===== CATEGORY FILTER =====
+    category = request.GET.get('category')
+    if category and category != 'all':
+        products = products.filter(category__iexact=category)
+    
+    # ===== SEASON FILTER =====
+    # Convert frontend format (summer, winter, year-round) to DB format (SUMMER, WINTER, ALL_YEAR)
+    season = request.GET.get('season')
+    if season:
+        season_mapping = {
+            'summer': 'SUMMER',
+            'winter': 'WINTER',
+            'year-round': 'ALL_YEAR'
+        }
+        db_season = season_mapping.get(season.lower())
+        if db_season:
+            products = products.filter(season=db_season)
+    
+    # ===== IN STOCK FILTER =====
+    in_stock = request.GET.get('in_stock')
+    if in_stock and in_stock.lower() == 'true':
+        products = products.filter(inventory__stock_available__gt=0)
+    
+    # ===== SEARCH FILTER =====
+    # Search in both English name and local name (variety)
+    search = request.GET.get('search')
+    if search:
+        search_term = search.strip()
+        if search_term:
+            products = products.filter(
+                Q(name__icontains=search_term) | Q(local_name__icontains=search_term)
+            )
+    
+    # ===== PRICE RANGE FILTERS =====
+    price_min = request.GET.get('price_min')
+    if price_min:
+        try:
+            products = products.filter(price__gte=float(price_min))
+        except (ValueError, TypeError):
+            pass  # Ignore invalid price values
+    
+    price_max = request.GET.get('price_max')
+    if price_max:
+        try:
+            products = products.filter(price__lte=float(price_max))
+        except (ValueError, TypeError):
+            pass
+    
+    # ===== SORTING =====
+    sort_by = request.GET.get('sort', 'featured')
+    
+    if sort_by == 'price_low':
+        products = products.order_by('price', 'name')
+    elif sort_by == 'price_high':
+        products = products.order_by('-price', 'name')
+    elif sort_by == 'name_asc':
+        products = products.order_by('name')
+    elif sort_by == 'name_desc':
+        products = products.order_by('-name')
+    elif sort_by == 'date_new':
+        # Sort by newest first (using product_id as proxy for creation order)
+        products = products.order_by('-product_id')
+    else:  # featured or default
+        # Default sorting: by category and name
+        products = products.order_by('category', 'name')
+    
+    # ===== SERIALIZE AND RETURN =====
+    serializer = ProductCatalogSerializer(products, many=True)
+    
+    # Return the data with proper JSON response
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for products
+    GET /api/products/ - List all products
+    GET /api/products/{id}/ - Get product details
+    POST /api/products/ - Create product
+    PUT /api/products/{id}/ - Update product
+    DELETE /api/products/{id}/ - Delete product
+    """
+    queryset = Product.objects.all().select_related('inventory')
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProductListSerializer
+        return ProductSerializer
+    
+    def get_queryset(self):
+        queryset = super().get_queryset().filter(is_active=True)
+        
+        # Filter by category
+        category = self.request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        
+        # Filter by season
+        season = self.request.query_params.get('season', None)
+        if season:
+            queryset = queryset.filter(season=season)
+        
+        # Search by name
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(local_name__icontains=search)
+            )
+        
+        # Filter by stock availability
+        in_stock = self.request.query_params.get('in_stock', None)
+        if in_stock == 'true':
+            queryset = queryset.filter(inventory__stock_available__gt=0)
+        
+        return queryset.order_by('category', 'name')
+    
+    @action(detail=False, methods=['get'])
+    def categories(self, request):
+        """Get all unique categories"""
+        categories = Product.objects.filter(is_active=True).values_list('category', flat=True).distinct()
+        return Response({'categories': list(categories)})
+    
+    @action(detail=False, methods=['get'])
+    def count(self, request):
+        """Get total product count"""
+        count = self.get_queryset().count()
+        return Response({'count': count})
+
+
+class CartViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for shopping cart
+    GET /api/cart/?customer_id=1 - Get cart items
+    POST /api/cart/ - Add item to cart
+    PUT /api/cart/{id}/ - Update cart item
+    DELETE /api/cart/{id}/ - Remove cart item
+    """
+    serializer_class = CartSerializer
+    
+    def get_queryset(self):
+        customer_id = self.request.query_params.get('customer_id')
+        if customer_id:
+            return Cart.objects.filter(customer_id=customer_id).select_related('product', 'product__inventory')
+        return Cart.objects.none()
+    
+    @action(detail=False, methods=['post'])
+    def add_item(self, request):
+        """Add item to cart or update quantity"""
+        customer_id = request.data.get('customer_id')
+        product_id = request.data.get('product_id')
+        quantity = request.data.get('quantity', 1)
+        
+        try:
+            cart_item, created = Cart.objects.get_or_create(
+                customer_id=customer_id,
+                product_id=product_id,
+                defaults={'quantity': quantity}
+            )
+            
+            if not created:
+                cart_item.quantity += quantity
+                cart_item.save()
+            
+            serializer = self.get_serializer(cart_item)
+            return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['delete'])
+    def clear(self, request):
+        """Clear entire cart for customer"""
+        customer_id = request.query_params.get('customer_id')
+        if customer_id:
+            deleted_count = Cart.objects.filter(customer_id=customer_id).delete()[0]
+            return Response({'message': f'Cart cleared. {deleted_count} items removed.'})
+        return Response({'error': 'Customer ID required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Get cart summary with total"""
+        customer_id = request.query_params.get('customer_id')
+        if not customer_id:
+            return Response({'error': 'Customer ID required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        cart_items = Cart.objects.filter(customer_id=customer_id).select_related('product')
+        total = sum(item.quantity * item.product.price for item in cart_items)
+        
+        return Response({
+            'items': CartSerializer(cart_items, many=True).data,
+            'total_items': cart_items.count(),
+            'estimated_total': total
+        })
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for orders
+    GET /api/orders/ - List all orders
+    GET /api/orders/?customer_id=1 - Get customer orders
+    POST /api/orders/ - Create new order
+    GET /api/orders/{id}/ - Get order details
+    """
+    queryset = Order.objects.all().prefetch_related('order_items__product')
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OrderCreateSerializer
+        return OrderSerializer
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        customer_id = self.request.query_params.get('customer_id')
+        if customer_id:
+            queryset = queryset.filter(customer_id=customer_id)
+        return queryset.order_by('-order_date')
+
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for customers
+    GET /api/customers/ - List all customers
+    POST /api/customers/ - Create customer
+    GET /api/customers/{id}/ - Get customer details
+    PUT /api/customers/{id}/ - Update customer
+    DELETE /api/customers/{id}/ - Delete customer
+    """
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    
+    @action(detail=True, methods=['get'])
+    def orders(self, request, pk=None):
+        """Get all orders for a customer"""
+        customer = self.get_object()
+        orders = customer.orders.all().order_by('-order_date')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+
+class InventoryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for inventory management
+    GET /api/inventory/ - List all inventory
+    PUT /api/inventory/{id}/ - Update stock
+    """
+    queryset = Inventory.objects.all().select_related('product')
+    serializer_class = InventorySerializer
+
 
 # ==================== HTML VIEWS ====================
 
@@ -61,109 +337,13 @@ def account_settings(request):
 
 # Auth pages
 def login(request):
-    """Handle login - GET redirects to landing with modal, POST processes login"""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        # Try to find user by email
-        try:
-            user_obj = User.objects.get(email=email)
-            username = user_obj.username
-        except User.DoesNotExist:
-            messages.error(request, 'Invalid email or password')
-            return redirect('main:landing')
-        
-        # Authenticate user
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            auth_login(request, user)
-            messages.success(request, f'Welcome back, {user.first_name or user.username}!')
-            return redirect('main:account_home')
-        else:
-            messages.error(request, 'Invalid email or password')
-            # Redirect back to landing with error message
-            return redirect('main:landing')
-    
-    # GET request - redirect to landing page
-    # Modal will auto-open if there are messages
-    return redirect('main:landing')
+    """Render login page"""
+    return render(request, 'auth/login.html')
 
 
 def signup(request):
-    """Handle signup - GET renders form, POST creates user"""
-    if request.method == 'POST':
-        full_name = request.POST.get('fullName')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirmPassword')
-        
-        # Validate passwords match
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match')
-            return redirect('main:landing')
-        
-        # Check if email already exists
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered')
-            return redirect('main:landing')
-        
-        # Check if username (from email) already exists
-        username = email.split('@')[0]
-        base_username = username
-        counter = 1
-        while User.objects.filter(username=username).exists():
-            username = f"{base_username}{counter}"
-            counter += 1
-        
-        try:
-            # Create new user
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-            
-            # Split name into first and last
-            name_parts = full_name.split(' ', 1)
-            user.first_name = name_parts[0]
-            if len(name_parts) > 1:
-                user.last_name = name_parts[1]
-            user.save()
-            
-            # Create customer profile if needed
-            from .models import Customer
-            Customer.objects.create(
-                name=full_name,
-                email=email,
-                phone=phone,
-                address=''
-            )
-            
-            messages.success(request, 'Account created successfully! Please login.')
-            return redirect('main:landing')
-            
-        except Exception as e:
-            messages.error(request, f'Error creating account: {str(e)}')
-            return redirect('main:signup')
-    
-    # GET request - redirect to landing page with signup modal
-    return redirect('main:landing')
-
-
-def logout_view(request):
-    """Handle user logout"""
-    auth_logout(request)
-    messages.success(request, 'You have been logged out successfully')
-    return redirect('main:login')
-
-
-def forgot_password(request):
-    """Redirect to landing page - forgot password handled via modal"""
-    messages.info(request, 'Please enter your email to reset your password')
-    return redirect('main:landing')
+    """Render signup page"""
+    return render(request, 'auth/signup.html')
 
 
 # Checkout pages
