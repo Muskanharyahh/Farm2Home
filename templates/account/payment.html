@@ -80,6 +80,10 @@
             <!-- Page Title -->
             <div class="payment-header">
                 <div class="payment-title-section">
+                    <a href="{% url 'main:account_home' %}" class="back-btn-link">
+                        <i class="fas fa-chevron-left"></i>
+                        Back to Overview
+                    </a>
                     <h1 class="page-title payment-title">PAYMENT METHODS</h1>
                     <p class="payment-subtitle">MANAGE YOUR PAYMENT OPTIONS SECURELY</p>
                 </div>
@@ -224,6 +228,22 @@
                 </div>
             </div>
 
+            <!-- Contact Support Section -->
+            <div class="contact-support-section">
+                <div class="contact-support-card">
+                    <div class="contact-support-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="contact-support-info">
+                        <h3>NEED HELP?</h3>
+                        <p>Having issues with payments? Contact our support team through the form on our website.</p>
+                    </div>
+                    <a href="{% url 'main:landing' %}#footerSection" class="contact-support-btn">
+                        <i class="fas fa-envelope"></i>
+                        CONTACT SUPPORT
+                    </a>
+                </div>
+            </div>
         </main>
     </div>
 

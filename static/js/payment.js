@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Payment method added:', formData);
             
             // Show success message
-            alert('Payment method added successfully!');
+            notifications.show('Payment method added successfully!', 'success', 'Payment Method Added');
             
             // Close modal and reset form
             closeModalFunc();

@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Farm2Home</title>
+    <link rel="stylesheet" href="{% static 'css/global-typography.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/auth.min.css' %}">
+    <style>
+        .alert {
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .alert-error {
+            background-color: #fee;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+    </style>>
+</head>
+<body class="auth-page login-page">
+    <div class="auth-container">
+        <!-- Left Side - Illustration -->
+        <div class="auth-left">
+            <img src="{% static 'images/left.png' %}" alt="Farm illustration" class="auth-illustration" loading="lazy" decoding="async">
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="auth-right">
+            <div class="auth-form-wrapper">
+                <!-- Logo/Brand -->
+                <div class="auth-header">
+                    <h2 class="auth-logo">farm2home</h2>
+                </div>
+
+                <!-- Form Title -->
+                <h1 class="auth-title">Login to your Account</h1>
+                <p class="auth-subtitle">See what's going on with your business</p>
+
+                <!-- Django Messages -->
+                {% if messages %}
+                    <div class="messages-container" style="margin-bottom: 1.5rem;">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}" style="padding: 0.875rem 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form" method="POST" action="{% url 'main:login' %}">
+                    {% csrf_token %}
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                placeholder="Enter your email" 
+                                required
+                                autocomplete="email">
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                placeholder="Enter your password" 
+                                required
+                                autocomplete="current-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="form-actions">
+                        <label class="remember-me">
+                            <input type="checkbox" id="rememberMe" name="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="{% url 'main:forgot_password' %}" class="forgot-password">Forgot password?</a>
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" class="auth-button">
+                        Login
+                    </button>
+                </form>
+
+                <!-- Sign Up Link -->
+                <div class="auth-footer">
+                    <p>Not Registered Yet? <a href="{% url 'main:signup' %}" class="signup-link">Create an account</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/notifications.js' %}" defer></script>
+    <script src="{% static 'js/auth.js' %}" defer></script>
+</body>
+</html>
