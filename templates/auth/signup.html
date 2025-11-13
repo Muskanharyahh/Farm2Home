@@ -8,6 +8,36 @@
     <link rel="stylesheet" href="{% static 'css/global-typography.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/auth.min.css' %}">
+    <style>
+        .alert {
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .alert-error {
+            background-color: #fee;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+    </style>>
 </head>
 <body class="auth-page signup-page">
     <div class="auth-container">
@@ -32,11 +62,7 @@
                 {% if messages %}
                     <div class="messages-container" style="margin-bottom: 1.5rem;">
                         {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}" style="padding: 0.875rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; 
-                                {% if message.tags == 'error' %}background-color: #fee; border-left: 4px solid #dc3545; color: #721c24;{% endif %}
-                                {% if message.tags == 'success' %}background-color: #d4edda; border-left: 4px solid #28a745; color: #155724;{% endif %}
-                                {% if message.tags == 'warning' %}background-color: #fff3cd; border-left: 4px solid #ffc107; color: #856404;{% endif %}
-                                {% if message.tags == 'info' %}background-color: #d1ecf1; border-left: 4px solid #17a2b8; color: #0c5460;{% endif %}">
+                            <div class="alert alert-{{ message.tags }}">
                                 {{ message }}
                             </div>
                         {% endfor %}
