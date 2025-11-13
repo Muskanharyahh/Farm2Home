@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Farm2Home</title>
+    <link rel="stylesheet" href="{% static 'css/global-typography.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/auth.min.css' %}">
+</head>
+<body class="auth-page signup-page">
+    <div class="auth-container">
+        <!-- Left Side - Illustration -->
+        <div class="auth-left">
+            <div class="illustration-section">
+                <img src="{% static 'images/left.png' %}" alt="Farm illustration" class="auth-illustration" loading="lazy" decoding="async">
+            </div>
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="auth-right">
+            <div class="auth-form-wrapper">
+                <!-- Logo/Brand -->
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i class="fas fa-leaf"></i>
+                        <span>farm2home</span>
+                    </div>
+                </div>
+
+                <!-- Form Title -->
+                <h1 class="auth-title">Create an Account</h1>
+                <p class="auth-subtitle">Join Farm2Home and start shopping fresh produce</p>
+
+                <!-- Signup Form -->
+                <form id="signupForm" class="auth-form" onsubmit="authFunctions.handleSignupSubmit(event)">
+                    <!-- Full Name Field -->
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input 
+                                type="text" 
+                                id="fullName" 
+                                name="fullName" 
+                                placeholder="Enter your full name" 
+                                required>
+                        </div>
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                placeholder="Enter your email" 
+                                required>
+                        </div>
+                    </div>
+
+                    <!-- Phone Field -->
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-phone"></i>
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                name="phone" 
+                                placeholder="Enter your phone number" 
+                                required>
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                placeholder="Create a password" 
+                                required>
+                            <button type="button" class="toggle-password" onclick="authFunctions.togglePassword('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="confirmPassword" 
+                                name="confirmPassword" 
+                                placeholder="Confirm your password" 
+                                required>
+                            <button type="button" class="toggle-password" onclick="authFunctions.togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="remember-me" style="margin-top: 1rem;">
+                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                        <label for="agreeTerms">I agree to the <a href="#" style="color: var(--primary-green);">Terms and Conditions</a></label>
+                    </div>
+
+                    <!-- Sign Up Button -->
+                    <button type="submit" class="auth-button" style="margin-top: 1.5rem;">
+                        Create Account
+                    </button>
+                </form>
+
+                <!-- Login Link -->
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="{% url 'main:login' %}" class="signup-link">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/notifications.js' %}" defer></script>
+    <script src="{% static 'js/auth.min.js' %}" defer></script>
+    <script defer>
+        document.getElementById('signupForm').addEventListener('submit', authFunctions.handleSignupSubmit);
+    </script>
+</body>
+</html>
