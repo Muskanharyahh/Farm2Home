@@ -64,6 +64,11 @@ def signup(request):
     return render(request, 'auth/signup.html')
 
 
+def forgot_password(request):
+    """Render forgot password page"""
+    return render(request, 'auth/login.html')  # Redirect to login for now
+
+
 # Checkout pages
 def checkout(request):
     """Render checkout page"""

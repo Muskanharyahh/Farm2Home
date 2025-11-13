@@ -23,6 +23,7 @@ urlpatterns = [
     # Auth
     path('login/', views.login, name='login'),
     path('signup/', views.signup, name='signup'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
     
     # Checkout
     path('checkout/', views.checkout, name='checkout'),
