@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Farm2Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .email-header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .email-content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .welcome-message {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        .features-section {
+            background-color: #f9f9f9;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        .features-section h3 {
+            color: #4CAF50;
+            font-size: 20px;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 6px;
+        }
+        .feature-icon {
+            font-size: 28px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .feature-content h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .feature-content p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .cta-button {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 40px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3);
+        }
+        .info-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .info-box strong {
+            color: #4CAF50;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 25px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer p {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🌾 Welcome to Farm2Home!</h1>
+            <p>Fresh, Organic, Direct from the Farm</p>
+        </div>
+        
+        <div class="email-content">
+            <p class="greeting">Hello {{ customer_name }}! 👋</p>
+            
+            <div class="welcome-message">
+                <p>We're thrilled to have you join the Farm2Home family! You've just taken the first step towards enjoying fresh, organic produce delivered straight from local farms to your doorstep.</p>
+                
+                <p>Say goodbye to middlemen and hello to farm-fresh goodness! 🥬🍅🥕</p>
+            </div>
+            
+            <div class="features-section">
+                <h3>What Makes Us Special?</h3>
+                
+                <div class="feature">
+                    <div class="feature-icon">🌱</div>
+                    <div class="feature-content">
+                        <h4>100% Organic</h4>
+                        <p>No pesticides, no chemicals. Just nature's best grown with care.</p>
+                    </div>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🚚</div>
+                    <div class="feature-content">
+                        <h4>Fresh Delivery</h4>
+                        <p>Harvested fresh and delivered within 24 hours. Farm to table, truly.</p>
+                    </div>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🤝</div>
+                    <div class="feature-content">
+                        <h4>Supporting Local Farmers</h4>
+                        <p>Direct partnerships ensuring fair prices for farmers and fresh produce for you.</p>
+                    </div>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">💚</div>
+                    <div class="feature-content">
+                        <h4>Sustainable Practices</h4>
+                        <p>Environmentally friendly farming for a better tomorrow.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <strong>🎉 Special Welcome Offer!</strong><br>
+                As a new member, explore our wide selection of fresh vegetables, fruits, and herbs. Quality produce at fair prices, every day!
+            </div>
+            
+            <div class="cta-button">
+                <a href="http://localhost:8000/catalog/" class="button">Start Shopping Now</a>
+            </div>
+            
+            <p style="text-align: center; margin-top: 30px; color: #666;">
+                Need help getting started? Check out our <a href="http://localhost:8000/" style="color: #4CAF50;">website</a> or contact our friendly support team!
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Farm2Home</strong></p>
+            <p>Fresh Organic Produce | Farm to Your Door</p>
+            <p>
+                <a href="http://localhost:8000/">Home</a> | 
+                <a href="http://localhost:8000/catalog/">Products</a> | 
+                <a href="http://localhost:8000/account/">My Account</a> | 
+                <a href="mailto:support@farm2home.com">Support</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 12px;">
+                &copy; 2025 Farm2Home. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

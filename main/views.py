@@ -4,7 +4,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
-from .models import Product, Inventory, Customer, Order, OrderItem, Cart, Address
+from .models import Product, Inventory, Customer, Order, OrderItem, Cart, Address, PasswordResetToken
 from .serializers import (
     ProductSerializer, ProductListSerializer, 
     ProductCatalogSerializer,
@@ -14,6 +14,7 @@ from .serializers import (
     CheckoutOrderCreateSerializer, OrderConfirmationSerializer,
     AddressSerializer
 )
+from .utils import send_welcome_email, send_order_confirmation_email, send_password_reset_email
 
 # ==================== API VIEWS ====================
 
@@ -433,6 +434,13 @@ def create_checkout_order(request):
             # order items creation, inventory updates, and cart clearing
             order = serializer.save()
             
+            # Send order confirmation email
+            try:
+                send_order_confirmation_email(order)
+            except Exception as e:
+                # Log error but don't fail order creation if email fails
+                print(f"Warning: Failed to send order confirmation email: {str(e)}")
+            
             # Prepare order confirmation response
             confirmation_serializer = OrderConfirmationSerializer(order)
             
@@ -687,6 +695,13 @@ def api_signup(request):
             password=hashed_password
         )
         
+        # Send welcome email to new customer
+        try:
+            send_welcome_email(customer)
+        except Exception as e:
+            # Log error but don't fail registration if email fails
+            print(f"Warning: Failed to send welcome email: {str(e)}")
+        
         # Return success response with customer data
         return Response({
             'success': True,
@@ -702,6 +717,207 @@ def api_signup(request):
         return Response({
             'success': False,
             'error': 'Failed to create account. Please try again.',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def api_request_password_reset(request):
+    """
+    API endpoint to request password reset
+    Sends an email with a reset link containing a unique token
+    
+    Expected POST data:
+    {
+        "email": "user@example.com"
+    }
+    
+    Returns on success:
+    {
+        "success": true,
+        "message": "Password reset email sent. Please check your inbox."
+    }
+    
+    Returns on failure:
+    {
+        "success": false,
+        "error": "No account found with this email address"
+    }
+    
+    Use Case: Called from forgot password form to initiate password reset process
+    """
+    from django.conf import settings
+    
+    # Extract email from request
+    email = request.data.get('email', '').strip()
+    
+    # Validate required fields
+    if not email:
+        return Response({
+            'success': False,
+            'error': 'Email address is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate email format
+    if '@' not in email or '.' not in email:
+        return Response({
+            'success': False,
+            'error': 'Invalid email format'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Find customer by email
+        customer = Customer.objects.get(email__iexact=email)
+        
+        # Create password reset token
+        reset_token = PasswordResetToken.objects.create(customer=customer)
+        
+        # Generate reset link - points to landing page which will open modal
+        # In production, use your actual domain
+        # For development, use localhost
+        reset_link = f"{request.scheme}://{request.get_host()}/landing/?token={reset_token.token}"
+        
+        # Send password reset email
+        try:
+            email_sent = send_password_reset_email(customer, reset_link)
+            
+            if email_sent:
+                return Response({
+                    'success': True,
+                    'message': 'Password reset email sent. Please check your inbox and follow the instructions.'
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Failed to send reset email. Please try again later.'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        except Exception as email_error:
+            # Log error but still return success to prevent email enumeration
+            print(f"❌ Failed to send password reset email: {str(email_error)}")
+            return Response({
+                'success': False,
+                'error': 'Failed to send reset email. Please try again later.',
+                'detail': str(email_error)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    except Customer.DoesNotExist:
+        # Email not found - inform user explicitly
+        return Response({
+            'success': False,
+            'error': 'No account found with this email address. Please check your email or sign up.'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    except Exception as e:
+        # Handle unexpected errors
+        return Response({
+            'success': False,
+            'error': 'Failed to process request. Please try again.',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def api_reset_password(request):
+    """
+    API endpoint to reset password using valid token
+    
+    Expected POST data:
+    {
+        "token": "uuid-token-string",
+        "new_password": "newpassword123",
+        "confirm_password": "newpassword123"
+    }
+    
+    Returns on success:
+    {
+        "success": true,
+        "message": "Password reset successfully. You can now login with your new password."
+    }
+    
+    Returns on failure:
+    {
+        "success": false,
+        "error": "Invalid or expired token"
+    }
+    
+    Use Case: Called from reset password form when user submits new password
+    """
+    from django.contrib.auth.hashers import make_password
+    
+    # Extract data from request
+    token = request.data.get('token', '').strip()
+    new_password = request.data.get('new_password', '')
+    confirm_password = request.data.get('confirm_password', '')
+    
+    # Validate required fields
+    if not all([token, new_password, confirm_password]):
+        return Response({
+            'success': False,
+            'error': 'All fields are required',
+            'missing_fields': [
+                field for field, value in {
+                    'token': token,
+                    'new_password': new_password,
+                    'confirm_password': confirm_password
+                }.items() if not value
+            ]
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate password length
+    if len(new_password) < 6:
+        return Response({
+            'success': False,
+            'error': 'Password must be at least 6 characters long'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate passwords match
+    if new_password != confirm_password:
+        return Response({
+            'success': False,
+            'error': 'Passwords do not match'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Find token
+        reset_token = PasswordResetToken.objects.get(token=token)
+        
+        # Check if token is valid (not expired and not used)
+        if not reset_token.is_valid():
+            return Response({
+                'success': False,
+                'error': 'Invalid or expired token. Please request a new password reset link.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get customer associated with token
+        customer = reset_token.customer
+        
+        # Hash new password
+        hashed_password = make_password(new_password)
+        
+        # Update customer password
+        customer.password = hashed_password
+        customer.save()
+        
+        # Mark token as used
+        reset_token.mark_as_used()
+        
+        return Response({
+            'success': True,
+            'message': 'Password reset successfully. You can now login with your new password.'
+        }, status=status.HTTP_200_OK)
+    
+    except PasswordResetToken.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Invalid token. Please request a new password reset link.'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    except Exception as e:
+        # Handle unexpected errors
+        return Response({
+            'success': False,
+            'error': 'Failed to reset password. Please try again.',
             'detail': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -1211,6 +1427,11 @@ def forgot_password(request):
     return render(request, 'auth/forgot_password.html')
 
 
+def reset_password(request):
+    """Render reset password page"""
+    return render(request, 'auth/reset_password.html')
+
+
 # Checkout pages
 def checkout(request):
     """Render checkout page"""
@@ -1609,5 +1830,55 @@ def delete_customer_account_api(request):
         return Response({
             'status': 'error',
             'message': f'Failed to delete account: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_customer_addresses_api(request):
+    """
+    Get all saved addresses for a customer
+    GET /api/addresses/?customer_id=<id>
+    
+    Query Params:
+        - customer_id: int (required)
+    
+    Returns:
+        - 200: List of addresses
+        - 400: Invalid request
+        - 404: Customer not found
+        - 500: Server error
+    """
+    try:
+        customer_id = request.GET.get('customer_id')
+        
+        if not customer_id:
+            return Response({
+                'status': 'error',
+                'message': 'customer_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get customer
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Customer not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get all addresses for this customer
+        addresses = Address.objects.filter(customer=customer)
+        serializer = AddressSerializer(addresses, many=True)
+        
+        return Response({
+            'status': 'success',
+            'addresses': serializer.data,
+            'count': addresses.count()
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to fetch addresses: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

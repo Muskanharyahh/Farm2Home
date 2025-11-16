@@ -461,7 +461,8 @@ body {
     font-size: 18px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     flex: 1;
     background: none;
     border: none;
@@ -470,6 +471,23 @@ body {
     outline: none;
     font-weight: 500;
     font-family: 'Poppins', sans-serif;
+}
+
+.form-group select {
+    cursor: pointer;
+    padding-right: 30px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+
+.form-group select option {
+    background: var(--primary-teal);
+    color: white;
+    padding: 12px;
+    font-weight: 500;
 }
 
 .form-group input::placeholder {
