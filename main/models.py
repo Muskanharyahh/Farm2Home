@@ -1,4 +1,7 @@
 from django.db import models
+import uuid
+from datetime import timedelta
+from django.utils import timezone
 
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)
@@ -132,4 +135,32 @@ class Address(models.Model):
         if self.is_default:
             Address.objects.filter(customer=self.customer, is_default=True).update(is_default=False)
         super().save(*args, **kwargs)
+
+
+class PasswordResetToken(models.Model):
+    """
+    Model to store password reset tokens for customers
+    Each token is valid for 1 hour and can only be used once
+    """
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reset_tokens')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Reset token for {self.customer.email} - {self.token}"
+    
+    def is_valid(self):
+        """Check if token is still valid (not expired and not used)"""
+        # Token expires after 1 hour
+        expiry_time = self.created_at + timedelta(hours=1)
+        return not self.is_used and timezone.now() < expiry_time
+    
+    def mark_as_used(self):
+        """Mark token as used"""
+        self.is_used = True
+        self.save()
 

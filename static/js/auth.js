@@ -276,9 +276,253 @@ async function handleSignupSubmit(e) {
     return false;
 }
 
+/**
+ * Handle Forgot Password Form Submission
+ * Sends password reset email to the user
+ */
+async function handleForgotPasswordSubmit(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value.trim();
+    const submitButton = document.getElementById('submitButton');
+    const buttonText = document.getElementById('buttonText');
+    const buttonSpinner = document.getElementById('buttonSpinner');
+    
+    // Validate email
+    if (!validateEmail(email)) {
+        if (typeof notifications !== 'undefined') {
+            notifications.error('Please enter a valid email address', 'error', 'Invalid Email');
+        } else {
+            showAlert('Please enter a valid email address', 'error');
+        }
+        return false;
+    }
+    
+    // Disable submit button and show loading state
+    submitButton.disabled = true;
+    if (buttonText) buttonText.style.display = 'none';
+    if (buttonSpinner) buttonSpinner.style.display = 'inline';
+    
+    try {
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Send request to API
+        const response = await fetch('/api/auth/request-password-reset/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            if (typeof notifications !== 'undefined') {
+                notifications.success(data.message, 'success', 'Email Sent');
+            } else {
+                showAlert(data.message, 'success');
+            }
+            // Clear form
+            document.getElementById('forgotPasswordForm').reset();
+        } else {
+            // Show error message
+            if (typeof notifications !== 'undefined') {
+                notifications.error(data.error || 'Failed to send reset link. Please try again.', 'error', 'Error');
+            } else {
+                showAlert(data.error || 'Failed to send reset link. Please try again.', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        if (typeof notifications !== 'undefined') {
+            notifications.error('An error occurred. Please try again later.', 'error', 'Connection Error');
+        } else {
+            showAlert('An error occurred. Please try again later.', 'error');
+        }
+    } finally {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        if (buttonText) buttonText.style.display = 'inline';
+        if (buttonSpinner) buttonSpinner.style.display = 'none';
+    }
+    
+    return false;
+}
+
+/**
+ * Handle Reset Password Form Submission
+ * Resets password using the token from URL
+ */
+async function handleResetPasswordSubmit(e) {
+    e.preventDefault();
+    
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const token = document.getElementById('resetToken').value;
+    const submitButton = document.getElementById('submitButton');
+    const buttonText = document.getElementById('buttonText');
+    const buttonSpinner = document.getElementById('buttonSpinner');
+    
+    // Validate passwords
+    if (newPassword.length < 6) {
+        if (typeof notifications !== 'undefined') {
+            notifications.error('Password must be at least 6 characters long', 'error', 'Invalid Password');
+        } else {
+            showAlert('Password must be at least 6 characters long', 'error');
+        }
+        return false;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        if (typeof notifications !== 'undefined') {
+            notifications.error('Passwords do not match', 'error', 'Validation Error');
+        } else {
+            showAlert('Passwords do not match', 'error');
+        }
+        return false;
+    }
+    
+    // Disable submit button and show loading state
+    submitButton.disabled = true;
+    if (buttonText) buttonText.style.display = 'none';
+    if (buttonSpinner) buttonSpinner.style.display = 'inline';
+    
+    try {
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Send request to API
+        const response = await fetch('/api/auth/reset-password/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                token: token,
+                new_password: newPassword,
+                confirm_password: confirmPassword
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            if (typeof notifications !== 'undefined') {
+                notifications.success(data.message, 'success', 'Success');
+            } else {
+                showAlert(data.message, 'success');
+            }
+            // Clear form
+            document.getElementById('resetPasswordForm').reset();
+            // Redirect to login page after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/login/';
+            }, 2000);
+        } else {
+            // Show error message
+            if (typeof notifications !== 'undefined') {
+                notifications.error(data.error || 'Failed to reset password. Please try again.', 'error', 'Error');
+            } else {
+                showAlert(data.error || 'Failed to reset password. Please try again.', 'error');
+            }
+            // Re-enable submit button
+            submitButton.disabled = false;
+            if (buttonText) buttonText.style.display = 'inline';
+            if (buttonSpinner) buttonSpinner.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        if (typeof notifications !== 'undefined') {
+            notifications.error('An error occurred. Please try again later.', 'error', 'Connection Error');
+        } else {
+            showAlert('An error occurred. Please try again later.', 'error');
+        }
+        // Re-enable submit button
+        submitButton.disabled = false;
+        if (buttonText) buttonText.style.display = 'inline';
+        if (buttonSpinner) buttonSpinner.style.display = 'none';
+    }
+    
+    return false;
+}
+
+/**
+ * Initialize Reset Password Page
+ * Validates token and sets up form
+ */
+function initResetPasswordPage() {
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    
+    if (resetPasswordForm) {
+        // Get token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            if (typeof notifications !== 'undefined') {
+                notifications.error('Invalid reset link. Please request a new password reset.', 'error', 'Invalid Link');
+            } else {
+                showAlert('Invalid reset link. Please request a new password reset.', 'error');
+            }
+            document.getElementById('submitButton').disabled = true;
+            return;
+        }
+        
+        // Set token in hidden field
+        document.getElementById('resetToken').value = token;
+        
+        // Add form submit handler
+        resetPasswordForm.addEventListener('submit', handleResetPasswordSubmit);
+    }
+}
+
+/**
+ * Initialize Forgot Password Page
+ */
+function initForgotPasswordPage() {
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', handleForgotPasswordSubmit);
+    }
+}
+
+/**
+ * Helper function to show alerts (fallback when notifications not available)
+ */
+function showAlert(message, type) {
+    const alertContainer = document.getElementById('alertContainer');
+    if (!alertContainer) return;
+    
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    
+    alertContainer.innerHTML = `
+        <div class="alert ${alertClass}">
+            <i class="fas ${icon}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Auto-remove alert after 5 seconds for errors
+    if (type === 'error') {
+        setTimeout(() => {
+            alertContainer.innerHTML = '';
+        }, 5000);
+    }
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     initAuthPage();
+    initForgotPasswordPage();
+    initResetPasswordPage();
 });
 
 // Export functions for global access
@@ -288,5 +532,9 @@ window.authFunctions = {
     validatePasswordStrength,
     showPasswordStrength,
     handleLoginSubmit,
-    handleSignupSubmit
+    handleSignupSubmit,
+    handleForgotPasswordSubmit,
+    handleResetPasswordSubmit,
+    initResetPasswordPage,
+    initForgotPasswordPage
 };

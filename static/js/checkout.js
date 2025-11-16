@@ -12,7 +12,7 @@ let orderData = null; // Store created order data
 // Initialize checkout page
 document.addEventListener('DOMContentLoaded', function() {
     loadCartData();
-    initializeCarousel();
+    loadSavedAddresses();
     setupFormValidation();
 });
 
@@ -127,6 +127,9 @@ async function loadCartData() {
         });
         console.log('========================');
         
+        // Initialize carousel AFTER cart data is loaded
+        initializeCarousel();
+        
     } catch (error) {
         showLoading(false);
         console.error('Error loading cart:', error);
@@ -139,6 +142,145 @@ async function loadCartData() {
     }
 }
 
+// ==================== SAVED ADDRESSES ====================
+
+/**
+ * Load saved addresses for the customer
+ * Populates the address dropdown if addresses exist
+ */
+async function loadSavedAddresses() {
+    const customerId = getCustomerId();
+    
+    console.log('🔍 loadSavedAddresses() called');
+    console.log('🆔 Customer ID:', customerId);
+    
+    if (!customerId) {
+        console.log('⚠️ No customer ID - user not logged in');
+        return; // User not logged in, skip loading addresses
+    }
+    
+    console.log('📡 Fetching saved addresses from API...');
+    
+    try {
+        const response = await fetch(`/api/customer/addresses/?customer_id=${customerId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        console.log('📦 API Response:', data);
+        
+        if (data.status === 'success' && data.addresses && data.addresses.length > 0) {
+            // Show the saved addresses dropdown
+            const savedAddressGroup = document.getElementById('savedAddressGroup');
+            if (savedAddressGroup) {
+                savedAddressGroup.style.display = 'block';
+            }
+            
+            // Populate the dropdown
+            const dropdown = document.getElementById('savedAddresses');
+            dropdown.innerHTML = '<option value="">-- Select a saved address --</option>';
+            
+            data.addresses.forEach(addr => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(addr);
+                
+                // Format label nicely
+                let label = addr.label.charAt(0).toUpperCase() + addr.label.slice(1).toLowerCase();
+                option.textContent = `${label} - ${addr.address_line}, ${addr.city} ${addr.postal_code}`;
+                
+                if (addr.is_default) {
+                    option.textContent += ' ⭐';
+                    option.style.fontWeight = '600';
+                }
+                dropdown.appendChild(option);
+            });
+            
+            console.log(`✅ Loaded ${data.addresses.length} saved address(es)`);
+            
+            // Auto-select default address if exists
+            const defaultAddr = data.addresses.find(addr => addr.is_default);
+            if (defaultAddr) {
+                dropdown.value = JSON.stringify(defaultAddr);
+                fillAddressFromSaved();
+            }
+        } else {
+            console.log('ℹ️ No saved addresses found - user will enter manually');
+        }
+        
+    } catch (error) {
+        console.error('Error loading saved addresses:', error);
+        // Don't show error to user, just log it
+    }
+}
+
+/**
+ * Fill shipping form with selected saved address
+ */
+function fillAddressFromSaved() {
+    const dropdown = document.getElementById('savedAddresses');
+    const selectedValue = dropdown.value;
+    
+    if (!selectedValue) {
+        // User selected "Select an address or enter manually"
+        // Clear the form
+        document.getElementById('address').value = '';
+        document.getElementById('city').value = '';
+        document.getElementById('zipCode').value = '';
+        document.getElementById('phone').value = '';
+        return;
+    }
+    
+    try {
+        const address = JSON.parse(selectedValue);
+        
+        // Fill the shipping form with the selected address
+        document.getElementById('address').value = address.address_line || '';
+        document.getElementById('city').value = address.city || '';
+        document.getElementById('zipCode').value = address.postal_code || '';
+        document.getElementById('phone').value = address.phone || '';
+        
+        // Get customer name and email from localStorage
+        const customerName = localStorage.getItem('customer_name');
+        const customerEmail = localStorage.getItem('customer_email');
+        
+        if (customerName) {
+            document.getElementById('fullName').value = customerName;
+        }
+        if (customerEmail) {
+            document.getElementById('email').value = customerEmail;
+        }
+        
+        // Add visual feedback - highlight filled fields briefly
+        const fields = ['address', 'city', 'zipCode', 'phone'];
+        fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && field.value) {
+                field.style.transition = 'all 0.3s ease';
+                field.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    field.style.transform = 'scale(1)';
+                }, 300);
+            }
+        });
+        
+        console.log('✅ Filled address from saved:', address.label);
+        
+        // Show success notification
+        if (typeof notifications !== 'undefined') {
+            notifications.success(`${address.label.charAt(0).toUpperCase() + address.label.slice(1).toLowerCase()} address loaded!`);
+        }
+        
+    } catch (error) {
+        console.error('Error parsing saved address:', error);
+        if (typeof notifications !== 'undefined') {
+            notifications.error('Failed to load address. Please enter manually.');
+        }
+    }
+}
+
 // ==================== CAROUSEL FUNCTIONS (UI - UNCHANGED) ====================
 
 // Initialize carousel
@@ -146,6 +288,9 @@ function initializeCarousel() {
     renderCarouselItems();
     renderCarouselDots();
     showCarouselItem(0);
+    
+    // Add swipe functionality
+    setupSwipeGestures();
 }
 
 // Render carousel items
@@ -248,6 +393,111 @@ function prevCarouselItem() {
         showCarouselItem(currentItemIndex - 1);
     } else {
         showCarouselItem(cart.length - 1); // Loop to end
+    }
+}
+
+// ==================== SWIPE GESTURE SUPPORT ====================
+
+/**
+ * Setup touch/swipe gestures for carousel navigation
+ * Allows users to swipe left/right on the product image area to navigate between items
+ * Also supports mouse drag for desktop testing
+ */
+function setupSwipeGestures() {
+    const carouselContainer = document.getElementById('carouselItems');
+    
+    if (!carouselContainer) {
+        console.log('Carousel container not found');
+        return;
+    }
+    
+    if (cart.length <= 1) {
+        console.log('Only one item in cart, swipe disabled');
+        return;
+    }
+    
+    console.log('Setting up swipe gestures for', cart.length, 'items');
+    
+    let startX = 0;
+    let endX = 0;
+    let startY = 0;
+    let endY = 0;
+    let isDragging = false;
+    
+    // Minimum swipe distance (in pixels) to trigger navigation
+    const minSwipeDistance = 50;
+    
+    // Touch events for mobile
+    carouselContainer.addEventListener('touchstart', function(e) {
+        startX = e.changedTouches[0].screenX;
+        startY = e.changedTouches[0].screenY;
+        console.log('Touch start:', startX, startY);
+    }, { passive: true });
+    
+    carouselContainer.addEventListener('touchend', function(e) {
+        endX = e.changedTouches[0].screenX;
+        endY = e.changedTouches[0].screenY;
+        console.log('Touch end:', endX, endY);
+        handleSwipeGesture();
+    }, { passive: true });
+    
+    // Double-click for desktop - navigate to next item (loops back to first)
+    carouselContainer.addEventListener('dblclick', function(e) {
+        console.log('Double-click detected - going to next item');
+        nextCarouselItem();
+    });
+    
+    // Mouse events for desktop drag (alternative navigation method)
+    carouselContainer.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        startX = e.screenX;
+        startY = e.screenY;
+        carouselContainer.style.cursor = 'grabbing';
+    });
+    
+    carouselContainer.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+    });
+    
+    carouselContainer.addEventListener('mouseup', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        endX = e.screenX;
+        endY = e.screenY;
+        carouselContainer.style.cursor = 'pointer';
+        handleSwipeGesture();
+    });
+    
+    carouselContainer.addEventListener('mouseleave', function() {
+        if (isDragging) {
+            isDragging = false;
+            carouselContainer.style.cursor = 'pointer';
+        }
+    });
+    
+    // Set cursor style
+    carouselContainer.style.cursor = 'pointer';
+    carouselContainer.style.userSelect = 'none';
+    
+    function handleSwipeGesture() {
+        const horizontalDistance = endX - startX;
+        const verticalDistance = Math.abs(endY - startY);
+        
+        console.log('Swipe detected - Horizontal:', horizontalDistance, 'Vertical:', verticalDistance);
+        
+        // Only process horizontal swipes (not vertical scrolling)
+        if (Math.abs(horizontalDistance) > minSwipeDistance && Math.abs(horizontalDistance) > verticalDistance) {
+            if (horizontalDistance > 0) {
+                console.log('Swiped right - going to previous item');
+                prevCarouselItem();
+            } else {
+                console.log('Swiped left - going to next item');
+                nextCarouselItem();
+            }
+        } else {
+            console.log('Swipe too short or too vertical, ignoring');
+        }
     }
 }
 

@@ -327,11 +327,40 @@
     text-decoration: none;
     font-size: 0.9rem;
     transition: color 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
 }
 
 .forgot-password-link:hover {
     color: #4da83d;
     text-decoration: underline;
+}
+
+/* Back Button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+    font-family: inherit;
+}
+
+.back-btn:hover {
+    color: #333;
+}
+
+.back-btn i {
+    font-size: 0.85rem;
 }
 
 /* Submit Button */

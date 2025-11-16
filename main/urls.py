@@ -32,6 +32,8 @@ urlpatterns = [
     # These endpoints handle user login and signup via API (returns JSON)
     path('api/auth/login/', views.api_login, name='api_login'),
     path('api/auth/signup/', views.api_signup, name='api_signup'),
+    path('api/auth/request-password-reset/', views.api_request_password_reset, name='api_request_password_reset'),
+    path('api/auth/reset-password/', views.api_reset_password, name='api_reset_password'),
     
     # Customer Profile API endpoints
     # These endpoints provide customer profile data and order summaries for account pages
@@ -73,6 +75,7 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('logout/', views.logout_view, name='logout'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/', views.reset_password, name='reset_password'),
     
     # Checkout
     path('checkout/', views.checkout, name='checkout'),

@@ -306,7 +306,7 @@
                                 <input type="checkbox" name="rememberMe">
                                 <span>Remember me</span>
                             </label>
-                            <a href="#" class="forgot-password-link">Forgot password?</a>
+                            <button type="button" class="forgot-password-link" onclick="switchToForgotPassword()">Forgot password?</button>
                         </div>
 
                         <button type="submit" class="submit-btn">Login</button>
@@ -389,6 +389,42 @@
 
                     <div class="form-footer">
                         <p>Already have an account? <button type="button" class="switch-form-btn" onclick="switchToLogin()">Login</button></p>
+                    </div>
+                </div>
+
+                <!-- Forgot Password Form (Hidden by default) -->
+                <div id="forgotPasswordForm" class="auth-form-section" style="display: none;">
+                    <div class="form-header">
+                        <button type="button" class="back-btn" onclick="switchToLogin()">
+                            <i class="fas fa-arrow-left"></i> Back to Login
+                        </button>
+                        <h1 class="form-title">Forgot Password?</h1>
+                        <p class="form-subtitle">Enter your email to receive a password reset link</p>
+                    </div>
+
+                    <form id="forgotPasswordFormElement" class="form-container">
+                        {% csrf_token %}
+                        
+                        <div id="forgotPasswordAlert"></div>
+
+                        <div class="form-group">
+                            <label for="forgot_email">Email Address</label>
+                            <div class="input-field">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="forgot_email" name="email" placeholder="your@email.com" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="forgotPasswordSubmitBtn">
+                            <span id="forgotPasswordBtnText">Send Reset Link</span>
+                            <span id="forgotPasswordBtnSpinner" style="display: none;">
+                                <i class="fas fa-spinner fa-spin"></i> Sending...
+                            </span>
+                        </button>
+                    </form>
+
+                    <div class="form-footer">
+                        <p>Remember your password? <button type="button" class="switch-form-btn" onclick="switchToLogin()">Login</button></p>
                     </div>
                 </div>
             </div>

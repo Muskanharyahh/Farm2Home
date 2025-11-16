@@ -1552,20 +1552,36 @@ function closeAuthModal() {
 function switchToSignup() {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
     
     if (loginForm && signupForm) {
         loginForm.style.display = 'none';
         signupForm.style.display = 'block';
+        if (forgotPasswordForm) forgotPasswordForm.style.display = 'none';
     }
 }
 
 function switchToLogin() {
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
     
     if (loginForm && signupForm) {
         loginForm.style.display = 'block';
         signupForm.style.display = 'none';
+        if (forgotPasswordForm) forgotPasswordForm.style.display = 'none';
+    }
+}
+
+function switchToForgotPassword() {
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    
+    if (loginForm && signupForm && forgotPasswordForm) {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'none';
+        forgotPasswordForm.style.display = 'block';
     }
 }
 
@@ -1729,6 +1745,71 @@ if (signupFormElement) {
             if (typeof notifications !== 'undefined') {
                 notifications.error('An error occurred during signup. Please try again.');
             }
+        }
+    });
+}
+
+// Forgot Password form submission
+const forgotPasswordFormElement = document.getElementById('forgotPasswordFormElement');
+if (forgotPasswordFormElement) {
+    forgotPasswordFormElement.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('forgot_email').value.trim();
+        const submitBtn = document.getElementById('forgotPasswordSubmitBtn');
+        const btnText = document.getElementById('forgotPasswordBtnText');
+        const btnSpinner = document.getElementById('forgotPasswordBtnSpinner');
+        
+        if (!email) {
+            if (typeof notifications !== 'undefined') {
+                notifications.error('Please enter your email address');
+            }
+            return;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            if (typeof notifications !== 'undefined') {
+                notifications.error('Please enter a valid email address');
+            }
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        btnText.style.display = 'none';
+        btnSpinner.style.display = 'inline';
+        
+        try {
+            const response = await fetch('/api/auth/request-password-reset/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (typeof notifications !== 'undefined') {
+                    notifications.success(data.message);
+                }
+                forgotPasswordFormElement.reset();
+            } else {
+                if (typeof notifications !== 'undefined') {
+                    notifications.error(data.error || 'Failed to send reset link. Please try again.');
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            if (typeof notifications !== 'undefined') {
+                notifications.error('An error occurred. Please try again later.');
+            }
+        } finally {
+            submitBtn.disabled = false;
+            btnText.style.display = 'inline';
+            btnSpinner.style.display = 'none';
         }
     });
 }

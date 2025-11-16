@@ -180,3 +180,19 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# ============================================
+# EMAIL CONFIGURATION
+# ============================================
+# Using Gmail SMTP to send actual emails
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='your-email@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='your-app-password')
+DEFAULT_FROM_EMAIL = 'Farm2Home <noreply@farm2home.com>'
+
+# To use console backend for testing (prints emails to console):
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

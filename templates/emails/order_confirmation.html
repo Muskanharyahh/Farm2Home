@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - Farm2Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .email-header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .email-content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .order-details {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .order-details h2 {
+            margin: 0 0 15px 0;
+            color: #4CAF50;
+            font-size: 20px;
+        }
+        .order-info {
+            margin: 10px 0;
+        }
+        .order-info strong {
+            display: inline-block;
+            width: 120px;
+            color: #555;
+        }
+        .items-section {
+            margin: 25px 0;
+        }
+        .items-section h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item-details {
+            flex: 1;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .item-quantity {
+            color: #666;
+            font-size: 14px;
+        }
+        .item-price {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+        .total-section {
+            background-color: #f0f8f0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: right;
+        }
+        .total-section .total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .delivery-info {
+            background-color: #fff9e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .delivery-info strong {
+            color: #ff9800;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🌾 Order Confirmed!</h1>
+            <p>Thank you for choosing Farm2Home</p>
+        </div>
+        
+        <div class="email-content">
+            <p class="greeting">Dear {{ customer_name }},</p>
+            
+            <p>Thank you for your order! We're excited to deliver fresh, organic produce straight from the farm to your doorstep.</p>
+            
+            <div class="order-details">
+                <h2>Order Details</h2>
+                <div class="order-info">
+                    <strong>Order Number:</strong> #{{ order_id }}
+                </div>
+                <div class="order-info">
+                    <strong>Order Date:</strong> {{ order_date }}
+                </div>
+                <div class="order-info">
+                    <strong>Payment Method:</strong> {{ payment_method }}
+                </div>
+                <div class="order-info">
+                    <strong>Status:</strong> <span style="color: #ff9800;">Confirmed</span>
+                </div>
+            </div>
+            
+            <div class="items-section">
+                <h3>Order Items</h3>
+                {% for item in items %}
+                <div class="item">
+                    <div class="item-details">
+                        <div class="item-name">{{ item.product.name }}</div>
+                        <div class="item-quantity">Quantity: {{ item.quantity }}</div>
+                    </div>
+                    <div class="item-price">Rs. {{ item.price }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="total-section">
+                <div style="color: #666; margin-bottom: 10px;">Total Amount:</div>
+                <div class="total">Rs. {{ total_amount }}</div>
+            </div>
+            
+            <div class="delivery-info">
+                <strong>🚚 Delivery Information:</strong><br>
+                Your fresh produce will be delivered within 24-48 hours. You will receive another email with tracking information once your order is shipped.
+            </div>
+            
+            <center>
+                <a href="http://localhost:8000/account/orders/" class="button">Track Your Order</a>
+            </center>
+            
+            <p style="margin-top: 30px; color: #666;">
+                If you have any questions about your order, please don't hesitate to contact us.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Farm2Home</strong></p>
+            <p>Fresh Organic Produce | Farm to Your Door</p>
+            <p>
+                <a href="http://localhost:8000/">Visit Website</a> | 
+                <a href="http://localhost:8000/account/">My Account</a> | 
+                <a href="mailto:support@farm2home.com">Contact Support</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 12px;">
+                &copy; 2025 Farm2Home. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
