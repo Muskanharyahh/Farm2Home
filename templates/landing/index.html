@@ -159,19 +159,27 @@
                 <a href="{% url 'main:catalog' %}" class="view-all-link">View All Categories →</a>
             </div>
             
-            <div class="categories-grid">
-                <div class="category-card circular">
-                    <div class="category-circle">
-                        <img src="{% static 'images/vegetables/carrot.png' %}" alt="Fresh Vegetables">
+            <div class="featured-content-wrapper">
+                <!-- Left Side - Background Image -->
+                <div class="featured-image-container">
+                    <img src="{% static 'images/featureprod.png' %}" alt="Featured Products" class="featured-bg-image">
+                    
+                    <!-- Category Cards Overlay -->
+                    <div class="category-cards-overlay">
+                        <a href="{% url 'main:catalog' %}" class="category-card circular">
+                            <div class="category-circle">
+                                <img src="{% static 'images/vegetables/carrot.png' %}" alt="Fresh Vegetables">
+                            </div>
+                            <h3>Vegetables</h3>
+                        </a>
+                        
+                        <a href="{% url 'main:catalog' %}" class="category-card circular">
+                            <div class="category-circle">
+                                <img src="{% static 'images/fruits/pineapple.png' %}" alt="Fresh Fruits">
+                            </div>
+                            <h3>Fresh Fruits</h3>
+                        </a>
                     </div>
-                    <h3>Vegetables</h3>
-                </div>
-                
-                <div class="category-card circular">
-                    <div class="category-circle">
-                        <img src="{% static 'images/fruits/pineapple.png' %}" alt="Fresh Fruits">
-                    </div>
-                    <h3>Fresh Fruits</h3>
                 </div>
             </div>
         </div>
@@ -306,29 +314,6 @@
                     </div>
                     <div class="deal-discount">Save 34%</div>
                     <button class="deal-btn">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- B2B Bulk Buying Section -->
-    <section class="b2b-section">
-        <div class="container">
-            <div class="b2b-card">
-                <div class="b2b-content">
-                    <h2>Business to Business</h2>
-                    <h3>Buy in Bulk</h3>
-                    <p>Get exclusive wholesale prices for your business. Direct from farm to your store.</p>
-                    <ul class="b2b-features">
-                        <li><i class="fas fa-check"></i> Wholesale Pricing</li>
-                        <li><i class="fas fa-check"></i> Bulk Orders</li>
-                        <li><i class="fas fa-check"></i> Dedicated Support</li>
-                        <li><i class="fas fa-check"></i> Fast Delivery</li>
-                    </ul>
-                    <a href="#contact" class="b2b-btn">Contact Sales Team</a>
-                </div>
-                <div class="b2b-image">
-                    <img src="{% static 'images/vegetables/okra.png' %}" alt="Bulk Vegetables">
                 </div>
             </div>
         </div>
@@ -585,8 +570,60 @@
         </div>
     </div>
 
+    <!-- About Farm2Home Section -->
+    <section class="about-farm-section">
+        <div class="container">
+            <div class="about-header">
+                <h2>About Farm2Home</h2>
+                <p>Connecting local farms directly to your table.</p>
+            </div>
+
+            <div class="about-cards-grid">
+                <!-- Card 1 -->
+                <div class="about-card">
+                    <div class="about-card-image">
+                        <img src="{% static 'images/card1.jpg' %}" alt="Our Mission">
+                    </div>
+                    <div class="about-card-content">
+                        <h3>Our Mission</h3>
+                        <p>To provide fresh locally-sourced produce while supporting sustainable farming practices</p>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="about-card">
+                    <div class="about-card-image">
+                        <img src="{% static 'images/card2.jpg' %}" alt="Our Farms">
+                    </div>
+                    <div class="about-card-content">
+                        <h3>Our Farms</h3>
+                        <p>Partnering in trusted local farms commited of quality and freshness.</p>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="about-card">
+                    <div class="about-card-image">
+                        <img src="{% static 'images/card3.png' %}" alt="Our Impact">
+                    </div>
+                    <div class="about-card-content">
+                        <h3>Our Impact</h3>
+                        <p>Reducing food miles and connecting of communities through healthy exiting</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Farm Investment Section with Image -->
+    <section class="farm-investment-section" id="farmInvestmentSection">
+        <!-- Coin Falling Animation -->
+        <div id="coinAnimation" class="coin-animation-container"></div>
+        <!-- Text will be added here later -->
+    </section>
+
     <!-- Footer -->
-    <footer class="footer" id="footerSection">
+    <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -642,11 +679,19 @@
     <script src="{% static 'js/notifications.js' %}"></script>
     <script src="{% static 'js/countdown.js' %}"></script>
     <script>
-        // Apply footer background image
-        document.getElementById('footerSection').style.backgroundImage = "url('{% static 'images/footer.png' %}')";
-        document.getElementById('footerSection').style.backgroundSize = "cover";
-        document.getElementById('footerSection').style.backgroundPosition = "center";
-        document.getElementById('footerSection').style.backgroundAttachment = "fixed";
+        // Apply about section background image
+        const aboutSection = document.querySelector('.about-farm-section');
+        aboutSection.style.backgroundImage = "url('{% static 'images/about.png' %}')";
+        aboutSection.style.backgroundSize = "100% auto";
+        aboutSection.style.backgroundPosition = "top center";
+        aboutSection.style.backgroundRepeat = "no-repeat";
+
+        // Apply farm investment section background image
+        const farmSection = document.getElementById('farmInvestmentSection');
+        farmSection.style.backgroundImage = "url('{% static 'images/footer.png' %}')";
+        farmSection.style.backgroundSize = "100% auto";
+        farmSection.style.backgroundPosition = "top center";
+        farmSection.style.backgroundRepeat = "no-repeat";
 
         // ================================
         // FRESH AUTH MODAL FUNCTIONS
@@ -1170,7 +1215,52 @@
                 }, 100);
             }
         });
+
+        // ================================
+        // COIN FALLING ANIMATION ON SCROLL
+        // ================================
+        
+        let coinAnimationPlayed = false;
+
+        function playFarmInvestmentAnimation() {
+            const section = document.getElementById('farmInvestmentSection');
+            const sectionTop = section.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+
+            // Check if section is in viewport
+            if (sectionTop < windowHeight && !coinAnimationPlayed) {
+                coinAnimationPlayed = true;
+                
+                // Load and play Lottie animation
+                const animationContainer = document.getElementById('coinAnimation');
+                
+                // Create coins falling animation
+                createCoinFallingAnimation();
+            }
+        }
+
+        function createCoinFallingAnimation() {
+            const container = document.getElementById('coinAnimation');
+            
+            // Clear previous coins
+            container.innerHTML = '';
+
+            // Create multiple falling coins
+            const coinCount = 8;
+            for (let i = 0; i < coinCount; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'falling-coin';
+                coin.style.left = Math.random() * 100 + '%';
+                coin.style.animationDelay = (i * 0.2) + 's';
+                coin.innerHTML = '💰';
+                container.appendChild(coin);
+            }
+        }
+
+        // Listen for scroll events
+        window.addEventListener('scroll', playFarmInvestmentAnimation);
     </script>
+
 </body>
 </html>
 
