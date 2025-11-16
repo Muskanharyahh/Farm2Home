@@ -592,8 +592,124 @@
     box-shadow: 0 4px 12px rgba(111, 168, 58, 0.3);
 }
 
+/* Payment page heading - match checkout style */
+.payment-container h2 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+    letter-spacing: 0;
+    font-weight: 700;
+    color: white;
+    border: none;
+    padding-bottom: 0;
+    display: block;
+    text-transform: uppercase;
+    font-family: 'Comfortaa', cursive;
+}
+
+/* Payment form labels - match checkout style (smaller, less bold) */
+.payment-form .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: rgba(30, 30, 30, 0.95);
+    font-family: 'Poppins', sans-serif;
+}
+
 .payment-form .input-wrapper i {
     display: none;
+}
+
+.payment-form .form-group {
+    margin-bottom: 20px;
+}
+
+.payment-form .input-wrapper {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.payment-form .input-wrapper:focus-within {
+    border-color: #8fbc3e;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 4px rgba(143, 188, 62, 0.2);
+}
+
+/* Stripe Element Styling */
+#card-element {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    max-height: 60px;
+    height: auto;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* Hide Stripe Link/Autofill button */
+#card-element button,
+#card-element [role="button"],
+#card-element .p-LinkButton,
+#card-element [class*="LinkButton"],
+#card-element [class*="link"],
+#card-element a,
+#card-element [class*="Link"],
+#card-element div[class*="link"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+#card-element iframe {
+    height: auto !important;
+    min-height: 20px !important;
+    pointer-events: auto !important;
+}
+
+#card-element:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 1);
+}
+
+#card-element.StripeElement--focus {
+    border-color: #8fbc3e;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 4px rgba(143, 188, 62, 0.2);
+}
+
+#card-element.StripeElement--invalid {
+    border-color: #fa755a;
+}
+
+#card-errors {
+    color: #fa755a;
+    margin-top: 8px;
+    font-size: 14px;
+    min-height: 20px;
+    font-weight: 500;
+}
+
+/* Loading state for Stripe Element */
+#card-element.loading {
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 .payment-form .form-group input {
@@ -601,15 +717,17 @@
     background: transparent;
     border: none;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1rem;
     outline: none;
     font-weight: 500;
     font-family: 'Poppins', sans-serif;
-    padding: 12px 0;
+    padding: 12px 16px;
+    height: 44px;
 }
 
 .payment-form .form-group input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.75);
+    font-style: italic;
 }
 
 .form-row {
@@ -1012,3 +1130,102 @@
         justify-content: center;
     }
 }
+
+/* Saved Payment Section (for checkout) */
+.saved-payment-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+}
+
+.saved-payment-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.saved-payment-toggle input[type=\"checkbox\"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-green);
+}
+
+.saved-payment-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.saved-payment-toggle label i {
+    font-size: 1.1rem;
+    color: var(--primary-green);
+}
+
+.saved-payment-dropdown {
+    margin-top: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.saved-payment-dropdown select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: #2d3748;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.saved-payment-dropdown select:hover {
+    border-color: var(--primary-green);
+    background: white;
+}
+
+.saved-payment-dropdown select:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(93, 187, 176, 0.1);
+}
+
+.divider-text {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin: 1.5rem 0 1rem 0;
+    position: relative;
+}
+
+.divider-text::before, .divider-text::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 35%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.divider-text::before { left: 0; }
+.divider-text::after { right: 0; }
+

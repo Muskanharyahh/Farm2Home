@@ -196,3 +196,16 @@ DEFAULT_FROM_EMAIL = 'Farm2Home <noreply@farm2home.com>'
 
 # To use console backend for testing (prints emails to console):
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# ============================================
+# STRIPE CONFIGURATION (TEST MODE)
+# ============================================
+# Get your test keys from: https://dashboard.stripe.com/test/apikeys
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLIC_KEY', default='pk_test_your_key_here')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='sk_test_your_key_here')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='', cast=str)  # Optional for testing
+
+# Test Card Numbers for Stripe:
+# Success: 4242 4242 4242 4242
+# Decline: 4000 0000 0000 0002
+# Any future expiry (MM/YY) and any 3-digit CVV works

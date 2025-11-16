@@ -1,479 +1,446 @@
-# Farm2Home - Complete Project Documentation
+# 📚 Farm2Home - Complete Documentation
 
-**Last Updated:** November 15, 2025  
-**Project:** E-commerce Platform for Fresh Farm Produce  
-**Tech Stack:** Django 5.2.7, PostgreSQL, DRF, Vanilla JavaScript
+**Last Updated:** November 17, 2025  
+**Project:** Fresh Organic Produce E-commerce Platform  
+**Tech Stack:** Django 5.2.7, PostgreSQL, Stripe 11.1.0, Gmail SMTP  
+**Status:** ✅ Production Ready (Test Mode)
 
 ---
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Database Structure](#database-structure)
-3. [Backend Implementation](#backend-implementation)
-4. [Frontend Implementation](#frontend-implementation)
+2. [Order Creation System](#order-creation-system)
+3. [Email Notifications](#email-notifications)
+4. [Stripe Payment Integration](#stripe-payment-integration)
 5. [Authentication System](#authentication-system)
-6. [API Endpoints](#api-endpoints)
-7. [Testing Guide](#testing-guide)
-8. [Deployment Notes](#deployment-notes)
+6. [Saved Addresses](#saved-addresses)
+7. [Database Structure](#database-structure)
+8. [API Endpoints](#api-endpoints)
+9. [Testing Guide](#testing-guide)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Project Overview
 
-### What is Farm2Home?
-An e-commerce platform connecting farmers with consumers for fresh, organic produce delivery. Features include product catalog with seasonal filtering, user authentication, shopping cart, checkout process, and address management.
+Farm2Home is an e-commerce platform connecting farmers with consumers for fresh, organic produce delivery. 
 
 ### Key Features
-- **Product Catalog:** 56 products (24 vegetables, 24 fruits, 8 herbs)
-- **Dynamic Seasons:** Automatic season detection (winter/summer)
-- **Authentication:** Modal-based login/signup system
+- **Product Catalog:** 56 products (vegetables, fruits, herbs) with seasonal filtering
+- **Authentication:** Secure login/signup with modal UI
 - **Shopping Cart:** Add to cart, modify quantities
-- **Checkout:** Multi-step process (shipping → payment → confirmation)
-- **Address Management:** CRUD operations for delivery addresses
-- **Order Tracking:** Order history and status updates
+- **Order System:** Complete checkout-to-delivery flow
+- **Email Notifications:** Automated order confirmations
+- **Stripe Payments:** Secure card processing + Cash on Delivery
+- **Address Management:** Save multiple delivery addresses
 
 ---
 
-## Database Structure
+## Order Creation System
 
-### Models Summary
+### Overview
+Complete checkout flow with database integration, inventory management, and cart clearing.
 
-#### Customer Model
-- **Fields:** customer_id, name, email, phone, address, password (hashed)
-- **Features:** Unique email, password hashing with PBKDF2-SHA256
-- **Sample Data:** 5 test customers created
+### Payment Flow
+```
+Add to Cart → Checkout → Fill Shipping → Payment → Order Created → Cart Cleared → Confirmation Email → Confirmation Page
+```
 
-#### Product Model
-- **Fields:** product_id, name, local_name, category, price, season, discount, image, slug
-- **Categories:** VEGETABLES, FRUITS, HERBS
-- **Seasons:** SUMMER (Mar-Oct), WINTER (Nov-Feb), ALL_YEAR
-- **Sample Data:** 56 products populated
+### API Endpoint
+**POST** `/api/checkout/create-order/`
 
-#### Inventory Model
-- **Fields:** inventory_id, product (OneToOne), stock_available
-- **Features:** Tracks stock levels, auto-decrements on order
-- **Sample Data:** All products have 50-500kg stock
+### What Happens When Order is Created
+1. **Customer:** Created/updated in database
+2. **Order:** New record with PENDING status
+3. **OrderItems:** One record per product
+4. **Inventory:** Stock reduced by quantities
+5. **Cart:** All items deleted for customer
+6. **Email:** Confirmation sent automatically
 
-#### Order Model
-- **Fields:** order_id, customer, order_date, status, total_amount, payment
-- **Status Choices:** PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
-- **Sample Data:** 10 sample orders created
-
-#### OrderItem Model
-- **Fields:** item_id, order, product, quantity, price
-- **Features:** Links products to orders with snapshot pricing
-
-#### Cart Model
-- **Fields:** cart_id, customer, product, quantity, added_at
-- **Constraint:** unique_together (customer, product)
-
-#### Address Model
-- **Fields:** address_id, customer, label, address_line, city, postal_code, phone, is_default
-- **Labels:** HOME, WORK, OTHER
-- **Business Rule:** Only one default address per customer
+### Supported Payment Methods
+- ✅ **Card Payment:** Stripe-processed (shows last 4 digits in order)
+- ✅ **Cash on Delivery:** No card details required
 
 ---
 
-## Backend Implementation
+## Email Notifications
 
-### Authentication APIs
+### Overview
+Automated order confirmation emails sent immediately after order placement with comprehensive details.
 
-#### Login API
-- **Endpoint:** `POST /api/auth/login/`
-- **Payload:** `{"email": "...", "password": "..."}`
-- **Response:** Customer data with customer_id on success
-- **Security:** Password verification with check_password()
+### Email Content Includes
+✅ Order number and date  
+✅ Itemized products with subtotals (qty × price)  
+✅ Payment method (Card ending in XXXX / Cash on Delivery)  
+✅ Complete shipping address with phone  
+✅ Price breakdown (subtotal + delivery + total)  
+✅ Delivery timeline (24-48 hours)  
+✅ Professional HTML design with Farm2Home branding  
 
-#### Signup API
-- **Endpoint:** `POST /api/auth/signup/`
-- **Payload:** `{"name": "...", "email": "...", "phone": "...", "address": "...", "password": "..."}`
-- **Validation:** Email format, password length (min 6), duplicate email check
-- **Response:** New customer data with customer_id
+### Configuration
 
-### Checkout APIs
+**Development (Console - Current):**
+```python
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+```
+Emails print to terminal - perfect for testing.
 
-#### Get Cart
-- **Endpoint:** `GET /api/checkout/cart/?customer_id=X`
-- **Returns:** Cart items with product details, total, and count
-- **Format:** Matches frontend expectations exactly
+**Production (Gmail SMTP):**
+Add to `.env`:
+```
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-16-char-app-password
+```
 
-#### Create Order
-- **Endpoint:** `POST /api/checkout/create-order/`
-- **Payload:** Shipping info, billing info, items array, customer_id
-- **Process:** Creates customer, order, order items; updates inventory; clears cart
-- **Response:** Order confirmation with order number
+Get App Password: https://myaccount.google.com/apppasswords
 
-#### Get Order Confirmation
-- **Endpoint:** `GET /api/checkout/order/{order_id}/`
-- **Returns:** Complete order details for confirmation page
-
-### Address Management APIs
-
-#### List Addresses
-- **Endpoint:** `GET /api/customer/addresses/?customer_id=X`
-- **Returns:** All addresses for customer with formatted data
-
-#### Add Address
-- **Endpoint:** `POST /api/customer/addresses/add/`
-- **Validation:** Phone (10-15 digits), postal code (5 digits), all required fields
-
-#### Update Address
-- **Endpoint:** `PUT /api/customer/addresses/{id}/`
-- **Security:** Ownership verification (customer can only edit their addresses)
-
-#### Set Default
-- **Endpoint:** `POST /api/customer/addresses/{id}/set-default/`
-- **Logic:** Removes default from other addresses, sets new default
-
-#### Delete Address
-- **Endpoint:** `DELETE /api/customer/addresses/{id}/`
-- **Security:** Ownership verification
-
-### Catalog API
-
-#### Get Products
-- **Endpoint:** `GET /api/catalog/products/`
-- **Filters:** category, season, in_stock, search
-- **Response:** Products with computed inSeasonNow and inStock booleans
+### Troubleshooting Emails
+- **Not in inbox?** Check spam/promotions folder
+- **Gmail issues?** Generate new App Password with 2FA enabled
+- **Want instant preview?** Use console backend (current setting)
 
 ---
 
-## Frontend Implementation
+## Stripe Payment Integration
 
-### Landing Page
-- **File:** `templates/landing/index.html`
-- **Features:** Hero section, product showcase, authentication modals
-- **Modal:** Split-layout with farmer illustration (left.png)
-- **Animations:** Blur effect on background when modal opens
+### Setup
 
-### Product Catalog
-- **File:** `templates/prod-catalog/index.html`
-- **JS:** `static/js/catalog.js` (previously script.js)
-- **Features:** 
-  - Filters (category, season, price, stock)
-  - Search functionality
-  - Sorting options
-  - Add to cart with quantity selector
-  - Dynamic season indicator
+**1. Install Stripe:**
+```bash
+pip install stripe==11.1.0
+```
 
-### Checkout Flow
-- **Files:** `templates/checkout/index.html`, `templates/checkout/payment.html`
-- **JS:** `static/js/checkout.js`
-- **Steps:**
-  1. Shipping form (name, email, phone, address)
-  2. Payment form (card details or COD)
-  3. Confirmation page
-- **Integration:** Loads cart from API, submits order to backend
+**2. Get Test Keys:**
+- Sign up: https://dashboard.stripe.com/register
+- Go to: Developers → API keys
+- Copy both keys (pk_test_... and sk_test_...)
 
-### Account Section
-- **Files:** Multiple templates in `templates/account/`
-- **Features:**
-  - Account overview
-  - Address management (CRUD)
-  - Order history
-  - Payment methods
-  - Settings
+**3. Add to `.env`:**
+```
+STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY
+STRIPE_SECRET_KEY=sk_test_YOUR_KEY
+```
 
-### Address Management
-- **File:** `templates/account/addresses.html`
-- **JS:** `static/js/addresses.js`
-- **Features:**
-  - Display all addresses with cards
-  - Add/Edit/Delete with modal forms
-  - Set default address
-  - Inline validation
-  - Animations and notifications
+**4. Restart server**
+
+### Test Cards
+| Card Number | Result |
+|-------------|--------|
+| 4242 4242 4242 4242 | ✅ Success |
+| 4000 0000 0000 0002 | ❌ Declined |
+| 4000 0000 0000 9995 | ❌ Insufficient Funds |
+
+Use with any future expiry (12/25) and any CVV (123).
+
+### Features
+- ✅ Real-time validation
+- ✅ Card brand detection (Visa, Mastercard, etc.)
+- ✅ Secure card input (never touches your server)
+- ✅ Loading states and error handling
+- ✅ PCI-DSS compliant by default
 
 ---
 
 ## Authentication System
 
-### Implementation Details
+### Implementation
+- **Modal-based:** No page redirects, opens on same page
+- **Password Security:** PBKDF2-SHA256 hashing
+- **Session Management:** customer_id in localStorage
+- **Validation:** Email format, password length (min 6 chars)
 
-#### Password Security
-- **Hashing:** Django's make_password() with PBKDF2-SHA256
-- **Verification:** check_password() for constant-time comparison
-- **Migration:** Added password field, updated existing customers
+### API Endpoints
+- **POST** `/api/auth/login/` - User login
+- **POST** `/api/auth/signup/` - User registration
 
-#### Modal System
-- **Design:** Split-layout with farmer illustration
-- **Controls:** Open/close, form switching (login ↔ signup)
-- **Keyboard:** ESC to close
-- **Click:** Outside modal to close
-- **Animations:** Smooth fade in/out with backdrop blur
+### User Flow
+1. Click Login/Signup button
+2. Modal appears with form
+3. Submit credentials via AJAX
+4. On success: Save to localStorage, reload page
+5. On error: Display message in modal
 
-#### User Flow
-1. User clicks Login/Signup button
-2. Modal appears on same page (no redirect)
-3. User enters credentials
-4. AJAX submission to backend API
-5. On success: Save customer_id to localStorage, reload page
-6. On error: Display error in modal
-7. Cart loads with customer_id
+---
 
-#### Integration Points
-- **checkout.js:** Opens login modal instead of redirecting to /login/
-- **localStorage:** Stores customer_id, customer_name, customer_email
-- **All pages:** Check localStorage for customer_id on load
+## Saved Addresses
+
+### Features
+- ✅ Save multiple addresses (HOME, WORK, OTHER)
+- ✅ Set default address (auto-selected at checkout)
+- ✅ Dropdown at checkout for quick selection
+- ✅ Auto-fill checkout form
+- ✅ Full CRUD operations
+
+### API Endpoints
+- **GET** `/api/addresses/?customer_id=X` - List all
+- **POST** `/api/addresses/` - Create new
+- **PUT** `/api/addresses/{id}/` - Update
+- **DELETE** `/api/addresses/{id}/` - Delete
+- **POST** `/api/addresses/{id}/set-default/` - Set as default
+
+### Database Model
+```python
+class Address:
+    customer = ForeignKey(Customer)
+    label = CharField(choices=['HOME', 'WORK', 'OTHER'])
+    address_line = CharField(max_length=500)
+    city = CharField(max_length=100)
+    postal_code = CharField(max_length=20)
+    phone = CharField(max_length=20)
+    is_default = BooleanField(default=False)
+```
+
+---
+
+## Database Structure
+
+### Core Models
+
+**Customer:** customer_id, name, email, phone, address, password (hashed)  
+**Product:** product_id, name, category, price, season, discount, image, slug  
+**Inventory:** inventory_id, product (OneToOne), stock_available  
+**Order:** order_id, customer, order_date, status, total_amount, payment  
+**OrderItem:** item_id, order, product, quantity, price  
+**Cart:** cart_id, customer, product, quantity, added_at  
+**Address:** address_id, customer, label, address_line, city, postal_code, phone, is_default  
+
+### Order Status Choices
+- PENDING (initial)
+- CONFIRMED
+- SHIPPED
+- DELIVERED
+- CANCELLED
 
 ---
 
 ## API Endpoints
 
-### Complete Endpoint List
-
-#### Authentication
+### Authentication
 - `POST /api/auth/login/` - User login
 - `POST /api/auth/signup/` - User registration
 
-#### Catalog
+### Catalog
 - `GET /api/catalog/products/` - Get products with filters
 
-#### Checkout
+### Cart & Checkout
 - `GET /api/checkout/cart/?customer_id=X` - Get cart items
 - `POST /api/checkout/create-order/` - Create order
-- `GET /api/checkout/order/{id}/` - Get order details
+- `DELETE /api/cart/clear/?customer_id=X` - Clear cart
 
-#### Address Management
-- `GET /api/customer/addresses/?customer_id=X` - List addresses
-- `POST /api/customer/addresses/add/` - Add address
-- `PUT /api/customer/addresses/{id}/` - Update address
-- `POST /api/customer/addresses/{id}/set-default/` - Set default
-- `DELETE /api/customer/addresses/{id}/` - Delete address
+### Addresses
+- `GET /api/addresses/?customer_id=X` - List addresses
+- `POST /api/addresses/` - Create address
+- `PUT /api/addresses/{id}/` - Update address
+- `DELETE /api/addresses/{id}/` - Delete address
+- `POST /api/addresses/{id}/set-default/` - Set default
 
-### Common Response Format
-```json
-{
-  "status": "success|error",
-  "message": "Descriptive message",
-  "data": {...},
-  "count": 0  // Optional
-}
-```
-
-### HTTP Status Codes
-- **200:** Successful GET/PUT/DELETE
-- **201:** Successful POST (created)
-- **400:** Bad request (validation error)
-- **401:** Unauthorized (wrong credentials)
-- **403:** Forbidden (ownership violation)
-- **404:** Not found
-- **409:** Conflict (duplicate email)
-- **500:** Server error
+### Stripe
+- `POST /api/stripe/create-payment-intent/` - Create payment
+- `POST /api/stripe/confirm-payment/` - Confirm payment
 
 ---
 
 ## Testing Guide
 
-### Backend Testing
+### Quick Test Flow
 
-#### Using test_auth_apis.py
+**1. Start Server:**
 ```bash
-python test_auth_apis.py
-```
-Tests login, signup, wrong password, duplicate email, etc.
-
-#### Using test_address_api.py
-```bash
-python test_address_api.py
-```
-Tests all address CRUD operations with 11 scenarios
-
-#### Manual API Testing
-Use Postman or curl to test endpoints with various payloads
-
-### Frontend Testing
-
-#### Authentication
-1. Click Login → Modal appears
-2. Enter invalid credentials → Error in modal
-3. Enter valid credentials → Success, page reloads
-4. Verify localStorage has customer_id
-5. Test signup flow similarly
-
-#### Checkout
-1. Add items to cart (localStorage initially)
-2. Navigate to /checkout/
-3. If not logged in → Login modal appears
-4. Login → Cart loads from backend API
-5. Fill shipping form → Validates, proceeds to payment
-6. Fill payment form → Submits order
-7. Confirmation displays
-
-#### Address Management
-1. Navigate to /account/addresses/
-2. Click "Add New Address" → Modal opens
-3. Fill form → Validates, submits
-4. Address card appears
-5. Click "Edit" → Modal with pre-filled data
-6. Update and save → Card updates
-7. Click "Set as Default" → Badge updates
-8. Click "Delete" → Confirmation dialog → Deletes
-
-### Cross-Browser Testing
-- Chrome/Edge (Chromium)
-- Firefox
-- Safari
-- Mobile browsers
-
----
-
-## Deployment Notes
-
-### Static Files Migration
-- **Structure:** All CSS in `static/css/`, JS in `static/js/`, images in `static/images/`
-- **Templates:** Using `{% load static %}` and `{% static 'path' %}`
-- **Collection:** Run `python manage.py collectstatic` before deployment
-
-### Environment Variables
-- **SECRET_KEY:** Django secret key (never commit)
-- **DEBUG:** Set to False in production
-- **DATABASE_URL:** PostgreSQL connection string
-- **ALLOWED_HOSTS:** Add production domain
-
-### Performance Optimizations
-- **CSS Minification:** auth.min.css (49% smaller)
-- **JS Minification:** auth.min.js (49% smaller)
-- **Lazy Loading:** Images use loading="lazy"
-- **Script Defer:** Scripts load asynchronously
-- **Total Savings:** ~7.5KB per page load
-
-### Security Checklist
-- [x] Password hashing implemented
-- [x] CSRF protection enabled
-- [x] Input validation (client + server)
-- [x] SQL injection prevention (Django ORM)
-- [x] XSS prevention (Django templates)
-- [ ] HTTPS enforced (production)
-- [ ] Rate limiting on login attempts
-- [ ] Payment gateway integration (if handling cards)
-
-### Production Recommendations
-1. Use PostgreSQL instead of SQLite
-2. Enable Gzip compression
-3. Set up CDN for static files
-4. Implement proper logging
-5. Add monitoring (Sentry, New Relic)
-6. Regular database backups
-7. Set up CI/CD pipeline
-8. Load testing before launch
-
----
-
-## Quick Reference
-
-### URLs to Access Pages
-```
-http://127.0.0.1:8000/                     # Home (redirects to landing)
-http://127.0.0.1:8000/landing/             # Landing page
-http://127.0.0.1:8000/catalog/             # Product catalog
-http://127.0.0.1:8000/checkout/            # Checkout
-http://127.0.0.1:8000/account/             # Account home
-http://127.0.0.1:8000/account/addresses/   # Address management
-http://127.0.0.1:8000/account/orders/      # Order history
-http://127.0.0.1:8000/admin/               # Django admin
-```
-
-### Common Commands
-```bash
-# Activate virtual environment
-.\.venv\Scripts\Activate.ps1
-
-# Run development server
 python manage.py runserver
-
-# Create migrations
-python manage.py makemigrations
-
-# Apply migrations
-python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
-
-# Collect static files
-python manage.py collectstatic
-
-# Run tests
-python test_auth_apis.py
-python test_address_api.py
 ```
 
-### File Structure
-```
-Farm2Home/
-├── Farm2Home/           # Django project settings
-├── main/                # Main Django app
-│   ├── models.py       # Database models
-│   ├── views.py        # API views
-│   ├── serializers.py  # DRF serializers
-│   ├── urls.py         # URL routing
-│   └── admin.py        # Admin configuration
-├── static/              # Static assets
-│   ├── css/            # Stylesheets
-│   ├── js/             # JavaScript files
-│   └── images/         # Product images
-├── templates/           # HTML templates
-│   ├── landing/        # Landing page
-│   ├── prod-catalog/   # Product catalog
-│   ├── checkout/       # Checkout pages
-│   ├── account/        # Account pages
-│   └── auth/           # Auth pages (old)
-├── manage.py           # Django management script
-└── requirements.txt    # Python dependencies
-```
+**2. Add Products:**
+- Visit http://localhost:8000/catalog/
+- Click "Add to Cart" on 2-3 products
+
+**3. Checkout:**
+- Click cart icon → "Checkout"
+- Fill shipping information
+
+**4. Test Card Payment:**
+- Card: 4242 4242 4242 4242
+- Expiry: 12/25, CVV: 123
+- Click "PURCHASE"
+
+**5. Test Cash on Delivery:**
+- Select "Cash on Delivery" tab
+- Click "CONFIRM ORDER"
+
+**6. Verify:**
+- ✅ Success notification
+- ✅ Email in terminal (console backend)
+- ✅ Cart empty
+- ✅ Order in Django admin
+- ✅ Confirmation page displays
+
+### Django Admin Checks
+1. Go to http://localhost:8000/admin/
+2. **Orders** → Verify order with correct total
+3. **OrderItems** → Check items match cart
+4. **Inventory** → Verify stock reduced
+5. **Carts** → Should be empty
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### "403 Forbidden" on order creation
+**Solution:** Backend has `@csrf_exempt`. Clear browser cache and retry.
 
-**Issue:** Server not starting
-**Solution:** Check if port 8000 is already in use, activate virtual environment
+### Email not received
+**Solutions:**
+1. Check spam/promotions folder
+2. Verify `.env` has EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
+3. Generate new Gmail App Password
+4. Use console backend to see email in terminal
 
-**Issue:** Static files not loading
-**Solution:** Run `python manage.py collectstatic`, check STATIC_URL in settings
+### Stripe card field not visible
+**Solutions:**
+1. Verify `.env` has STRIPE_PUBLIC_KEY starting with pk_test_
+2. Check F12 console for errors
+3. Hard refresh (Ctrl+Shift+R)
+4. Verify internet connection for Stripe.js
 
-**Issue:** Login not working
-**Solution:** Check localStorage has customer_id, verify API endpoint returns 200
+### Cart not clearing
+**Solutions:**
+1. Verify customer_id in localStorage
+2. Check Django logs for cart clearing confirmation
+3. Manual clear: http://localhost:8000/api/cart/clear/?customer_id=X
 
-**Issue:** Cart not loading
-**Solution:** Check customer_id in request, verify Cart records exist in database
-
-**Issue:** Address operations fail
-**Solution:** Verify customer_id matches address owner, check ownership validation
-
-**Issue:** Images not displaying
-**Solution:** Check image paths in static/images/, verify {% static %} tag usage
+### Order not creating
+**Solutions:**
+1. Check Django terminal for errors
+2. Verify customer_id exists in localStorage
+3. Check products have sufficient stock
+4. Open F12 console for frontend errors
 
 ---
 
-## Next Steps
+## Environment Variables
 
-### Completed Features ✅
-- Database models and migrations
-- Authentication system (login/signup)
-- Product catalog with filtering
-- Shopping cart functionality
-- Checkout process
-- Address management CRUD
-- Order creation and tracking
-- Admin panel configuration
+Required in `.env` file:
+```bash
+# Database
+DATABASE_URL=postgresql://postgres:password@localhost:5433/farm2home
 
-### Future Enhancements 🚀
-- Email verification for new users
-- Password reset functionality
-- Social login (Google, Facebook)
-- Payment gateway integration (Stripe)
-- Real-time order tracking
-- Product reviews and ratings
-- Wishlist functionality
-- Multi-language support
-- Mobile app (React Native)
+# Email (Gmail SMTP)
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-16-char-app-password
+
+# Stripe (Test Mode)
+STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY
+STRIPE_SECRET_KEY=sk_test_YOUR_KEY
+
+# Django
+SECRET_KEY=your-secret-key
+DEBUG=True
+```
+
+---
+
+## File Structure
+
+```
+Farm2Home/
+├── main/
+│   ├── models.py              # Database models
+│   ├── views.py               # API endpoints & view logic
+│   ├── serializers.py         # DRF serializers & validation
+│   ├── urls.py                # URL routing
+│   └── utils.py               # Email sending functions
+├── templates/
+│   ├── emails/
+│   │   └── order_confirmation.html   # Order email template
+│   ├── checkout/              # Checkout flow pages
+│   ├── account/               # Account pages
+│   └── landing/               # Landing page
+├── static/
+│   ├── js/
+│   │   ├── payment.js         # Stripe & payment logic
+│   │   ├── checkout.js        # Checkout flow
+│   │   ├── auth.js            # Authentication
+│   │   └── catalog.js         # Product catalog
+│   └── css/                   # Stylesheets
+├── Farm2Home/
+│   ├── settings.py            # Django configuration
+│   └── urls.py                # Main URL routing
+├── .env                       # Environment variables
+├── requirements.txt           # Python dependencies
+└── manage.py                  # Django management
+```
+
+---
+
+## Production Deployment Notes
+
+### Before Going Live:
+1. **Switch to real Stripe keys** (pk_live_ and sk_live_)
+2. **Enable Gmail SMTP** (update settings.py)
+3. **Set DEBUG=False**
+4. **Configure ALLOWED_HOSTS**
+5. **Enable HTTPS** (required for Stripe)
+6. **Use PostgreSQL** (not SQLite)
+7. **Set up logging** and monitoring
+8. **Regular database backups**
+9. **Add rate limiting** on login attempts
+10. **Implement proper session management**
+
+---
+
+## Common Commands
+
+```bash
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
+
+# Run server
+python manage.py runserver
+
+# Database migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# Create admin user
+python manage.py createsuperuser
+
+# Collect static files
+python manage.py collectstatic
+
+# Test scripts
+python test_auth_apis.py
+python test_address_api.py
+python test_order_creation.py
+```
+
+---
+
+## Support & Maintenance
+
+### Logs to Monitor
+- **Django Terminal:** Order creation, email sending, API errors
+- **Browser Console (F12):** JavaScript errors, API responses
+- **Django Admin:** Order status, inventory levels, customer data
+
+### Performance Monitoring
+- Order creation success rate
+- Email delivery success rate
+- Stripe payment success/failure rates
+- Inventory stock levels
+- Page load times
+
+---
+
+## Version Information
+
+- **Django:** 5.2.7
+- **Python:** 3.x
+- **Stripe:** 11.1.0
+- **PostgreSQL:** Latest
+- **Status:** ✅ Production Ready (Test Mode)
+- **Last Updated:** November 17, 2025
 
 ---
 
 **End of Documentation**
 
-For specific implementation details, refer to the individual markdown files in the project root or contact the development team.
+For support or questions, refer to Django logs, browser console, or check specific implementation files mentioned in this documentation.

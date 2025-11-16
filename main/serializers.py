@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Customer, Product, Inventory, Order, OrderItem, Cart, Address
+from .models import Customer, Product, Inventory, Order, OrderItem, Cart, Address, PaymentMethod
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -568,18 +568,22 @@ class BillingInfoSerializer(serializers.Serializer):
     Serializer for billing/payment information
     Matches the billing form in checkout.js
     Note: In production, never store full card details. Use payment gateway tokens.
+    For Cash on Delivery, card fields can be empty.
     """
-    cardName = serializers.CharField(max_length=200, required=True)
-    cardNumber = serializers.CharField(max_length=19, required=True, write_only=True)
+    cardName = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    cardNumber = serializers.CharField(max_length=19, required=False, allow_blank=True, write_only=True)
     cardNumberLast4 = serializers.CharField(max_length=4, read_only=True)  # Only store last 4 digits
-    expiryDate = serializers.CharField(max_length=5, required=True)
-    cvv = serializers.CharField(max_length=4, required=True, write_only=True)  # Never store CVV
-    billingAddress = serializers.CharField(max_length=500, required=True)
-    billingCity = serializers.CharField(max_length=100, required=True)
-    billingZip = serializers.CharField(max_length=20, required=True)
+    expiryDate = serializers.CharField(max_length=5, required=False, allow_blank=True)
+    cvv = serializers.CharField(max_length=4, required=False, allow_blank=True, write_only=True)  # Never store CVV
+    billingAddress = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    billingCity = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    billingZip = serializers.CharField(max_length=20, required=False, allow_blank=True)
     
     def validate_cardNumber(self, value):
-        """Basic card number validation"""
+        """Basic card number validation - skip if empty (COD)"""
+        if not value or not value.strip():
+            return ''
+        
         import re
         # Remove spaces and dashes
         card_digits = re.sub(r'[\s-]', '', value)
@@ -595,7 +599,10 @@ class BillingInfoSerializer(serializers.Serializer):
         return card_digits
     
     def validate_expiryDate(self, value):
-        """Validate expiry date format (MM/YY)"""
+        """Validate expiry date format (MM/YY) - skip if empty (COD)"""
+        if not value or not value.strip():
+            return ''
+        
         import re
         if not re.match(r'^\d{2}/\d{2}$', value):
             raise serializers.ValidationError("Expiry date must be in MM/YY format")
@@ -607,7 +614,10 @@ class BillingInfoSerializer(serializers.Serializer):
         return value
     
     def validate_cvv(self, value):
-        """Validate CVV"""
+        """Validate CVV - skip if empty (COD)"""
+        if not value or not value.strip():
+            return ''
+        
         if not value.isdigit() or len(value) < 3 or len(value) > 4:
             raise serializers.ValidationError("CVV must be 3 or 4 digits")
         return value
@@ -721,10 +731,17 @@ class CheckoutOrderCreateSerializer(serializers.Serializer):
                 )
             
             # Step 2: Create the order
+            # Determine payment method from billing data
+            card_number = billing_data.get('cardNumber', '').strip()
+            if card_number and len(card_number) >= 4:
+                payment_method = f"Card ending in {card_number[-4:]}"
+            else:
+                payment_method = "Cash on Delivery"
+            
             order = Order.objects.create(
                 customer=customer,
                 status='PENDING',
-                payment=f"Card ending in {billing_data['cardNumber'][-4:]}"  # Store only last 4 digits
+                payment=payment_method
             )
             
             # Step 3: Create order items and calculate total
@@ -752,9 +769,18 @@ class CheckoutOrderCreateSerializer(serializers.Serializer):
             order.total_amount = total_amount
             order.save()
             
-            # Step 5: Clear customer's cart if customer_id exists
-            if customer_id:
-                Cart.objects.filter(customer=customer).delete()
+            # Step 5: Store shipping info as temporary attribute for email
+            # (Not persisted to database, just for passing to email function)
+            order.shipping_info = {
+                'name': shipping_data['fullName'],
+                'address': shipping_data['address'],
+                'city': shipping_data['city'],
+                'zip': shipping_data['zipCode'],
+                'phone': shipping_data['phone'],
+            }
+            
+            # Step 6: Clear customer's cart (always clear, regardless of whether customer was new or existing)
+            Cart.objects.filter(customer=customer).delete()
             
             return order
 
@@ -767,13 +793,14 @@ class OrderConfirmationSerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
     total = serializers.DecimalField(source='total_amount', max_digits=10, decimal_places=2)
     shipping = serializers.SerializerMethodField()
-    orderNumber = serializers.CharField(source='order_id')
+    order_id = serializers.IntegerField(read_only=True)  # Direct field from model
+    orderNumber = serializers.IntegerField(source='order_id', read_only=True)  # Alias for compatibility
     orderDate = serializers.DateTimeField(source='order_date', format='%B %d, %Y at %I:%M %p')
     status = serializers.CharField()
     
     class Meta:
         model = Order
-        fields = ['orderNumber', 'orderDate', 'status', 'items', 'total', 'shipping']
+        fields = ['order_id', 'orderNumber', 'orderDate', 'status', 'items', 'total', 'shipping']
     
     def get_items(self, obj):
         """Get order items in checkout format"""
@@ -846,6 +873,72 @@ class AddressSerializer(serializers.ModelSerializer):
             if field in data and not data[field]:
                 raise serializers.ValidationError({
                     field: f"{field.replace('_', ' ').title()} is required."
+                })
+        
+        return data
+
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    """
+    Serializer for PaymentMethod model
+    Handles payment method data with validation for card details
+    SECURITY: Only processes last 4 digits of card, never full card number or CVV
+    """
+    payment_type_display = serializers.CharField(source='get_payment_type_display', read_only=True)
+    expiry_date = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PaymentMethod
+        fields = [
+            'payment_id', 'customer', 'payment_type', 'payment_type_display',
+            'card_holder_name', 'card_last_4', 'expiry_month', 'expiry_year',
+            'expiry_date', 'bank_name', 'is_default', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['payment_id', 'created_at', 'updated_at']
+    
+    def get_expiry_date(self, obj):
+        """Return expiry date in MM/YY format"""
+        return f"{obj.expiry_month}/{obj.expiry_year}"
+    
+    def validate_card_last_4(self, value):
+        """Validate last 4 digits of card"""
+        if not value.isdigit() or len(value) != 4:
+            raise serializers.ValidationError("Card last 4 must be exactly 4 digits")
+        return value
+    
+    def validate_expiry_month(self, value):
+        """Validate expiry month (01-12)"""
+        if not value.isdigit() or len(value) != 2:
+            raise serializers.ValidationError("Month must be 2 digits (01-12)")
+        
+        month = int(value)
+        if month < 1 or month > 12:
+            raise serializers.ValidationError("Month must be between 01 and 12")
+        
+        return value
+    
+    def validate_expiry_year(self, value):
+        """Validate expiry year (YY format)"""
+        if not value.isdigit() or len(value) != 2:
+            raise serializers.ValidationError("Year must be 2 digits (e.g., 25)")
+        return value
+    
+    def validate(self, data):
+        """Cross-field validation including expiry date check"""
+        # Check if card is expired
+        if 'expiry_month' in data and 'expiry_year' in data:
+            from datetime import datetime
+            
+            month = int(data['expiry_month'])
+            year = int(data['expiry_year']) + 2000  # Convert YY to YYYY
+            
+            current_date = datetime.now()
+            current_year = current_date.year
+            current_month = current_date.month
+            
+            if year < current_year or (year == current_year and month < current_month):
+                raise serializers.ValidationError({
+                    'expiry_date': 'Card has expired. Please use a valid card.'
                 })
         
         return data

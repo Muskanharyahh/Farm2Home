@@ -8,22 +8,42 @@
     <link rel="stylesheet" href="{% static 'css/global-typography.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notifications.css' %}"
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <style>
+        /* Custom styles for confirmation page only */
+        .checkout-container .order-items-section {
+            background: white;
+            border-radius: 20px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
     <div class="checkout-container">
         <div class="checkout-wrapper">
-            <!-- Left Side - Order Items -->
-            <div class="order-items-section">
-                <button class="back-btn" onclick="goBack()">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-                
-                <div class="items-carousel">
-                    <div class="carousel-container">
-                        <div class="carousel-items" id="carouselItems"></div>
+            <!-- Left Side - Success Message -->
+            <div class="order-items-section" style="display: flex; align-items: center; justify-content: center; padding: 40px;">
+                <div style="text-align: center; max-width: 500px;">
+                    <div style="font-size: 80px; color: #4CAF50; margin-bottom: 20px;">
+                        <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="carousel-dots" id="carouselDots"></div>
+                    <h1 style="color: #333; margin-bottom: 20px; font-size: 32px;">Order Confirmed!</h1>
+                    <p style="font-size: 18px; color: #666; margin-bottom: 15px;">
+                        Thank you for your purchase. Your order has been successfully placed.
+                    </p>
+                    <p style="font-size: 16px; color: #888; margin-bottom: 30px;">
+                        <i class="fas fa-envelope" style="margin-right: 8px;"></i>
+                        A confirmation email will be sent to your email address shortly with your order details and tracking information.
+                    </p>
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                        <p style="font-size: 14px; color: #555; margin: 0;">
+                            <i class="fas fa-truck" style="margin-right: 8px;"></i>
+                            Estimated delivery: <strong>24-48 hours</strong>
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -66,8 +86,10 @@
                         </div>
 
                         <div class="confirmation-actions">
-                            <button type="button" class="back-btn-secondary" onclick="goBack()">BACK</button>
-                            <button type="button" class="place-order-btn" onclick="backToHome()">PLACE ORDER</button>
+                            <button type="button" class="place-order-btn" onclick="continueShopping()" style="width: 100%; font-size: 16px;">
+                                <i class="fas fa-shopping-bag" style="margin-right: 8px;"></i>
+                                CONTINUE SHOPPING
+                            </button>
                         </div>
                     </div>
                 </div>

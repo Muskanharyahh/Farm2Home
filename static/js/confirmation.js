@@ -3,34 +3,59 @@ let shippingData = {};
 let paymentData = {};
 
 // Initialize confirmation page
-document.addEventListener('DOMContentLoaded', function() {
-    loadCartData();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadOrderData();
     loadShippingData();
     loadPaymentData();
-    initializeCarousel();
     displayConfirmationDetails();
 });
 
-// Load cart data from localStorage
-function loadCartData() {
+// Load order data from backend or localStorage
+async function loadOrderData() {
+    // First, try to get the last order ID
+    const lastOrderId = localStorage.getItem('lastOrderId');
+    
+    if (lastOrderId) {
+        // Fetch order from backend
+        try {
+            console.log('📦 Fetching order #' + lastOrderId);
+            const response = await fetch(`/api/checkout/order/${lastOrderId}/`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                console.log('✅ Order data loaded from backend:', data);
+                // Convert backend format to cart format
+                cart = data.items || [];
+                
+                // Update shipping data if available
+                if (data.shipping) {
+                    shippingData = data.shipping;
+                    localStorage.setItem('shippingData', JSON.stringify(shippingData));
+                }
+                
+                return;
+            }
+        } catch (error) {
+            console.error('❌ Failed to load order from backend:', error);
+        }
+    }
+    
+    // Fallback: try to load from localStorage (this data will exist until user clicks Continue Shopping)
     const cartData = localStorage.getItem('checkoutCart');
     if (cartData) {
         try {
             cart = JSON.parse(cartData);
-            console.log('Cart loaded:', cart);
+            console.log('Cart loaded from localStorage:', cart);
         } catch (e) {
             console.error('Error loading cart data:', e);
             cart = [];
         }
     }
     
+    // If still no data, use saved shipping/payment data to show confirmation
     if (cart.length === 0) {
-        console.warn('No items in cart');
-        notifications.error('No items found. Redirecting to checkout.');
-        setTimeout(() => {
-            window.location.href = '/checkout/';
-        }, 2000);
-        return;
+        console.warn('⚠️ No cart data, but order was placed successfully');
+        // Don't redirect - still show confirmation message
     }
 }
 
@@ -58,72 +83,7 @@ function loadPaymentData() {
     }
 }
 
-// Initialize carousel
-function initializeCarousel() {
-    renderCarouselItems();
-    renderCarouselDots();
-    showCarouselItem(0);
-}
-
-// Render carousel items
-function renderCarouselItems() {
-    const container = document.getElementById('carouselItems');
-    container.innerHTML = '';
-
-    if (cart.length === 0) {
-        container.innerHTML = '<p>No items in cart</p>';
-        return;
-    }
-
-    cart.forEach((item, index) => {
-        const itemEl = document.createElement('div');
-        itemEl.className = `carousel-item ${index === 0 ? 'active' : ''}`;
-        itemEl.dataset.index = index;
-
-        const itemTotal = (item.price * item.quantity).toFixed(2);
-        
-        const imagePath = item.image.startsWith('/') ? item.image : `/${item.image}`;
-        const fallbackImage = `https://via.placeholder.com/320x320/6b8e23/ffffff?text=${encodeURIComponent(item.name)}`;
-
-        itemEl.innerHTML = `
-            <div class="item-info">
-                <div class="item-number">Item ${index + 1} of ${cart.length}</div>
-                <div class="item-name">${item.name.toUpperCase()}</div>
-                <div class="item-price">$${itemTotal}</div>
-            </div>
-            <img src="${imagePath}" 
-                 alt="${item.name}" 
-                 class="item-image" 
-                 onerror="this.onerror=null; this.src='${fallbackImage}'">
-        `;
-
-        container.appendChild(itemEl);
-    });
-}
-
-// Render carousel dots
-function renderCarouselDots() {
-    const dotsContainer = document.getElementById('carouselDots');
-    dotsContainer.innerHTML = '';
-
-    cart.forEach((_, index) => {
-        const dot = document.createElement('div');
-        dot.className = `dot ${index === 0 ? 'active' : ''}`;
-        dot.onclick = () => showCarouselItem(index);
-        dotsContainer.appendChild(dot);
-    });
-}
-
-// Show carousel item
-function showCarouselItem(index) {
-    document.querySelectorAll('.carousel-item').forEach((item, i) => {
-        item.classList.toggle('active', i === index);
-    });
-
-    document.querySelectorAll('.dot').forEach((dot, i) => {
-        dot.classList.toggle('active', i === index);
-    });
-}
+// Carousel functions removed - no longer needed on confirmation page
 
 // Display confirmation details
 function displayConfirmationDetails() {
@@ -133,79 +93,123 @@ function displayConfirmationDetails() {
 
     // Build order details
     let detailsHTML = '';
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let total = 0;
     
-    cart.forEach((item, index) => {
-        const itemDesc = item.description || 'Fresh organic produce';
+    if (cart && cart.length > 0) {
+        total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
-        detailsHTML += `
-            <div class="confirmation-item">
-                <div class="confirmation-item-details">
-                    <div class="confirmation-item-name">${item.name}</div>
-                    <div class="confirmation-item-desc">${itemDesc}</div>
+        cart.forEach((item, index) => {
+            const itemDesc = item.description || 'Fresh organic produce';
+            
+            detailsHTML += `
+                <div class="confirmation-item">
+                    <div class="confirmation-item-details">
+                        <div class="confirmation-item-name">${item.name}</div>
+                        <div class="confirmation-item-desc">${itemDesc}</div>
+                    </div>
+                    <div class="confirmation-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
                 </div>
-                <div class="confirmation-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
-            </div>
-        `;
-    });
+            `;
+        });
 
-    detailsHTML += `
-        <div class="confirmation-total">
-            <span>TOTAL</span>
-            <span>$${total.toFixed(2)}</span>
-        </div>
-    `;
-
-    confirmationDetails.innerHTML = detailsHTML;
-
-    // Build shipping info
-    const shippingHTML = `
-        <div class="info-line">${shippingData.fullName || 'John Doe'}</div>
-        <div class="info-line">${shippingData.email || 'johndoe@example.com'}</div>
-        <div class="info-line">${shippingData.phone || '(555) 123-4567'}</div>
-        <div class="info-line">${shippingData.address || '123 Farm Road'}</div>
-        <div class="info-line">${shippingData.city || 'Springfield'}, ${shippingData.zipCode || '12345'}</div>
-    `;
-
-    confirmationShipping.innerHTML = shippingHTML;
-
-    // Build payment info
-    let paymentHTML = '';
-    if (paymentData.method === 'card') {
-        paymentHTML = `
-            <div class="payment-method-display">
-                <i class="fas fa-credit-card"></i>
-                <span>Credit/Debit Card</span>
+        detailsHTML += `
+            <div class="confirmation-total">
+                <span>TOTAL</span>
+                <span>$${total.toFixed(2)}</span>
             </div>
         `;
     } else {
-        paymentHTML = `
-            <div class="payment-method-display">
-                <i class="fas fa-money-bill-wave"></i>
-                <span>Cash on Delivery</span>
+        // Show generic success message if no cart data
+        detailsHTML = `
+            <div style="text-align: center; padding: 40px 20px;">
+                <h2 style="color: #4CAF50; margin-bottom: 20px;">✅ Order Placed Successfully!</h2>
+                <p style="font-size: 16px; color: #666; margin-bottom: 15px;">
+                    Thank you for your order. Your order has been received and is being processed.
+                </p>
+                <p style="font-size: 14px; color: #888;">
+                    📧 A confirmation email will be sent to your email address shortly with your order details.
+                </p>
             </div>
         `;
     }
 
-    confirmationPayment.innerHTML = paymentHTML;
+    if (confirmationDetails) {
+        confirmationDetails.innerHTML = detailsHTML;
+    }
+
+    // Build shipping info
+    if (confirmationShipping) {
+        const shippingHTML = `
+            <div class="info-line">${shippingData.fullName || 'Customer'}</div>
+            <div class="info-line">${shippingData.email || ''}</div>
+            <div class="info-line">${shippingData.phone || ''}</div>
+            ${shippingData.address ? `<div class="info-line">${shippingData.address}</div>` : ''}
+            ${shippingData.city ? `<div class="info-line">${shippingData.city}${shippingData.zipCode ? ', ' + shippingData.zipCode : ''}</div>` : ''}
+        `;
+        confirmationShipping.innerHTML = shippingHTML;
+    }
+
+    // Build payment info
+    if (confirmationPayment) {
+        let paymentHTML = '';
+        if (paymentData.method === 'card') {
+            paymentHTML = `
+                <div class="payment-method-display">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Credit/Debit Card</span>
+                </div>
+            `;
+        } else {
+            paymentHTML = `
+                <div class="payment-method-display">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Cash on Delivery</span>
+                </div>
+            `;
+        }
+        confirmationPayment.innerHTML = paymentHTML;
+    }
+}
+
+// Continue shopping - redirect to catalog
+function continueShopping() {
+    console.log('Continue Shopping clicked!');
+    
+    try {
+        // Clear checkout data
+        localStorage.removeItem('checkoutCart');
+        localStorage.removeItem('shippingData');
+        localStorage.removeItem('paymentData');
+        localStorage.removeItem('lastOrderId');
+        
+        // Show notification if available
+        if (typeof notifications !== 'undefined') {
+            notifications.success('🎉 Thank you for your order! Continue shopping for more fresh produce.');
+        }
+        
+        // Redirect to catalog
+        setTimeout(() => {
+            window.location.href = '/catalog/';
+        }, 1000);
+    } catch (error) {
+        console.error('Error in continueShopping:', error);
+        // Fallback - direct redirect
+        window.location.href = '/catalog/';
+    }
 }
 
 // Back to home
 function backToHome() {
-    // Show success notification
-    notifications.success('🎉 Order confirmed successfully! Thank you for your purchase.');
-    
-    // Clear checkout data after a delay
-    setTimeout(() => {
-        localStorage.removeItem('checkoutCart');
-        localStorage.removeItem('shippingData');
-        localStorage.removeItem('paymentData');
-        window.location.href = '/';
-    }, 2000);
+    continueShopping();
 }
 
-// Download receipt
+// Download receipt (optional - can be removed if not needed)
 function downloadReceipt() {
+    if (!cart || cart.length === 0) {
+        notifications.info('Receipt will be sent to your email address.');
+        return;
+    }
+    
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     let receiptContent = `FARM2HOME - ORDER RECEIPT\n`;
@@ -262,3 +266,9 @@ function downloadReceipt() {
 function goBack() {
     window.location.href = '/checkout/';
 }
+
+// Make functions globally accessible
+window.continueShopping = continueShopping;
+window.backToHome = backToHome;
+window.downloadReceipt = downloadReceipt;
+window.goBack = goBack;

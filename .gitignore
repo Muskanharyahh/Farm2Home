@@ -8,26 +8,26 @@ _pycache_/
 .env
 
 # VS Code
-.vscode/
+# .vscode/
 
-# IDEs
-.idea/
-*.sublime-project
-*.sublime-workspace
+# # IDEs
+# .idea/
+# *.sublime-project
+# *.sublime-workspace
 
-# pyenv
-.python-version
+# # pyenv
+# .python-version
 
 # pytest
-.pytest_cache/
+# .pytest_cache/
 
 # pip / packaging
 # pip-wheel-metadata/
 # *.egg-info/
 
 # System files
-.DS_Store
-Thumbs.db
+# .DS_Store
+# Thumbs.db
 
 # Other
 # coverage.xml

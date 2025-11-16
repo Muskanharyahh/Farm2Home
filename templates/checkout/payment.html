@@ -9,7 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notifications.css' %}"
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <!-- Stripe.js Library (Test Mode) -->
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <div class="checkout-container">
@@ -82,21 +84,21 @@
                             </div>
                             
                             <!-- Middle: Card Number -->
-                            <div class="card-number" id="displayCardNumber">5790 2533 6570 3631</div>
+                            <div class="card-number" id="displayCardNumber">•••• •••• •••• ••••</div>
                             
                             <!-- Bottom Row: Details -->
                             <div class="card-details">
                                 <div class="card-detail-item">
                                     <span class="card-detail-label">Cardholder Name</span>
-                                    <span class="card-detail-value" id="displayCardName">Anne</span>
+                                    <span class="card-detail-value" id="displayCardName">Your Name</span>
                                 </div>
                                 <div class="card-detail-item">
                                     <span class="card-detail-label">Expiry</span>
-                                    <span class="card-detail-value" id="displayExpiryDate">06/27</span>
+                                    <span class="card-detail-value" id="displayExpiryDate">MM/YY</span>
                                 </div>
                                 <div class="card-detail-item">
                                     <span class="card-detail-label">CVV</span>
-                                    <span class="card-detail-value" id="displayCVV">262</span>
+                                    <span class="card-detail-value" id="displayCVV">•••</span>
                                 </div>
                             </div>
                         </div>
@@ -109,35 +111,13 @@
                                 </div>
                             </div>
 
+                            <!-- Stripe Card Element Container -->
                             <div class="form-group">
-                                <label>CARD NUMBER</label>
-                                <div class="input-wrapper">
-                                    <input type="text" id="cardNumber" placeholder="5790 2533 6570 3631" maxlength="19" required>
+                                <label>CARD DETAILS (SECURE)</label>
+                                <div id="card-element" style="background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 8px;">
+                                    <!-- Stripe Card Element will be mounted here -->
                                 </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>EXP DATE</label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5" required>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>CVV</label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="cvv" placeholder="262" maxlength="4" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="payment-row">
-                                <div class="form-group">
-                                    <div class="checkbox-wrapper">
-                                        <input type="checkbox" id="saveCard" checked>
-                                        <label for="saveCard">Save card details</label>
-                                    </div>
-                                </div>
+                                <div id="card-errors" role="alert" style="color: #fa755a; margin-top: 8px; font-size: 14px;"></div>
                             </div>
 
                             <div class="payment-footer">
@@ -196,6 +176,10 @@
     </div>
 
     <script src="{% static 'js/notifications.js' %}"></script>
+    <script>
+        // Stripe Publishable Key (Test Mode)
+        const STRIPE_PUBLIC_KEY = '{{ STRIPE_PUBLIC_KEY }}';
+    </script>
     <script src="{% static 'js/payment.js' %}"></script>
 </body>
 </html>

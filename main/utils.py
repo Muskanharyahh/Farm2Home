@@ -64,14 +64,47 @@ def send_order_confirmation_email(order):
     try:
         subject = f'Order Confirmation #{order.order_id} - Farm2Home'
         
-        # Prepare template context
+        # Calculate item subtotals
+        items_with_subtotal = []
+        for item in order.order_items.all():
+            items_with_subtotal.append({
+                'product': item.product,
+                'quantity': item.quantity,
+                'price': f"{item.price:,.2f}",
+                'subtotal': f"{(item.quantity * item.price):,.2f}"
+            })
+        
+        # Get shipping info from order's temporary attribute if available
+        # Otherwise use customer's default information
+        if hasattr(order, 'shipping_info'):
+            shipping_info = order.shipping_info
+            shipping_name = shipping_info.get('name', order.customer.name)
+            shipping_address = shipping_info.get('address', 'Address on file')
+            shipping_city = shipping_info.get('city', 'City')
+            shipping_zip = shipping_info.get('zip', 'Postal Code')
+            shipping_phone = shipping_info.get('phone', order.customer.phone)
+        else:
+            # Fallback to customer information
+            shipping_name = order.customer.name
+            shipping_phone = order.customer.phone
+            shipping_address = 'Address on file'
+            shipping_city = 'City'
+            shipping_zip = 'Postal Code'
+        
+        # Prepare template context with complete order details
         context = {
             'customer_name': order.customer.name,
             'order_id': order.order_id,
             'order_date': order.order_date.strftime('%B %d, %Y at %I:%M %p'),
             'total_amount': f"{order.total_amount:,.2f}",
-            'payment_method': order.payment if order.payment else 'Not specified',
-            'items': order.order_items.all()
+            'payment_method': order.payment if order.payment else 'Cash on Delivery',
+            'items': items_with_subtotal,
+            # Shipping/Delivery information
+            'shipping_name': shipping_name,
+            'shipping_phone': shipping_phone,
+            'shipping_address': shipping_address,
+            'shipping_city': shipping_city,
+            'shipping_zip': shipping_zip,
         }
         
         # Render HTML email template
@@ -81,7 +114,11 @@ def send_order_confirmation_email(order):
         plain_message = strip_tags(html_message)
         
         # Send email
-        send_mail(
+        print(f"📧 Attempting to send email to: {order.customer.email}")
+        print(f"📧 Using SMTP: {settings.EMAIL_HOST}")
+        print(f"📧 From: {settings.DEFAULT_FROM_EMAIL}")
+        
+        result = send_mail(
             subject=subject,
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -90,11 +127,14 @@ def send_order_confirmation_email(order):
             fail_silently=False,
         )
         
+        print(f"📧 Email send result: {result} (1 = success, 0 = failed)")
         print(f"✅ Order confirmation email sent successfully to {order.customer.email} for Order #{order.order_id}")
         return True
         
     except Exception as e:
         print(f"❌ Failed to send order confirmation email for Order #{order.order_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return False
 
 

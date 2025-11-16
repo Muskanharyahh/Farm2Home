@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Order Creation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Order Creation Test</h1>
+        
+        <div class="test-section">
+            <h3>Test 1: Create Order with Mock Data</h3>
+            <p>This will test the order creation API with sample data</p>
+            <button onclick="testOrderCreation()">Create Test Order</button>
+            <div id="result1" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Check Customer Cart</h3>
+            <p>Check if cart items exist for customer</p>
+            <label>Customer ID: <input type="number" id="customerId" value="1" style="padding: 5px; margin: 0 10px;"></label>
+            <button onclick="checkCart()">Check Cart</button>
+            <div id="result2" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Clear Cart</h3>
+            <p>Clear all items from customer cart</p>
+            <label>Customer ID: <input type="number" id="customerIdClear" value="1" style="padding: 5px; margin: 0 10px;"></label>
+            <button onclick="clearCart()">Clear Cart</button>
+            <div id="result3" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testOrderCreation() {
+            const resultDiv = document.getElementById('result1');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Creating test order...';
+            resultDiv.className = 'result';
+
+            const testOrder = {
+                customer_id: 1,
+                shipping: {
+                    fullName: "Test User",
+                    email: "test@example.com",
+                    phone: "1234567890",
+                    address: "123 Test Street",
+                    city: "Test City",
+                    zipCode: "12345"
+                },
+                billing: {
+                    cardName: "Test User",
+                    cardNumber: "4242424242424242",
+                    expiryDate: "12/25",
+                    cvv: "123",
+                    billingAddress: "123 Test Street",
+                    billingCity: "Test City",
+                    billingZip: "12345"
+                },
+                items: [
+                    { product_id: 1, quantity: 2 },
+                    { product_id: 2, quantity: 1 }
+                ]
+            };
+
+            try {
+                const response = await fetch('/api/checkout/create-order/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testOrder)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ Order Created Successfully!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ Order Creation Failed\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Network Error\n\n' + error.message;
+            }
+        }
+
+        async function checkCart() {
+            const resultDiv = document.getElementById('result2');
+            const customerId = document.getElementById('customerId').value;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Checking cart...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`/api/cart/?customer_id=${customerId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Cart Items Found: ${data.length}\n\n` + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ Failed to fetch cart\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Network Error\n\n' + error.message;
+            }
+        }
+
+        async function clearCart() {
+            const resultDiv = document.getElementById('result3');
+            const customerId = document.getElementById('customerIdClear').value;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Clearing cart...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`/api/cart/clear/?customer_id=${customerId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ Cart Cleared Successfully!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ Failed to clear cart\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Network Error\n\n' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
