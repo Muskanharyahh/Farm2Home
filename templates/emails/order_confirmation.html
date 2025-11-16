@@ -14,7 +14,7 @@
             padding: 0;
         }
         .email-container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 20px auto;
             background-color: #ffffff;
             border-radius: 8px;
@@ -38,12 +38,23 @@
             opacity: 0.9;
         }
         .email-content {
-            padding: 30px 20px;
+            padding: 30px 25px;
         }
         .greeting {
             font-size: 18px;
             color: #333;
             margin-bottom: 20px;
+        }
+        .success-message {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success-message p {
+            margin: 5px 0;
+            color: #2e7d32;
         }
         .order-details {
             background-color: #f9f9f9;
@@ -59,11 +70,16 @@
         }
         .order-info {
             margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
         }
         .order-info strong {
-            display: inline-block;
-            width: 120px;
             color: #555;
+            min-width: 140px;
+        }
+        .order-info span {
+            flex: 1;
+            text-align: left;
         }
         .items-section {
             margin: 25px 0;
@@ -78,7 +94,8 @@
         .item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            align-items: center;
+            padding: 15px 0;
             border-bottom: 1px solid #eee;
         }
         .item:last-child {
@@ -90,35 +107,82 @@
         .item-name {
             font-weight: 600;
             color: #333;
+            font-size: 16px;
         }
-        .item-quantity {
+        .item-meta {
             color: #666;
             font-size: 14px;
+            margin-top: 5px;
         }
-        .item-price {
+        .item-pricing {
+            text-align: right;
+            min-width: 120px;
+        }
+        .item-unit-price {
+            color: #666;
+            font-size: 13px;
+        }
+        .item-subtotal {
             font-weight: 600;
             color: #4CAF50;
+            font-size: 16px;
+            margin-top: 5px;
         }
-        .total-section {
-            background-color: #f0f8f0;
-            padding: 20px;
+        .price-breakdown {
+            background-color: #f9f9f9;
+            padding: 15px 20px;
             margin: 20px 0;
             border-radius: 4px;
-            text-align: right;
         }
-        .total-section .total {
-            font-size: 24px;
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #555;
+        }
+        .price-row.total {
+            border-top: 2px solid #4CAF50;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 20px;
             font-weight: bold;
             color: #4CAF50;
         }
+        .info-section {
+            background-color: #f0f8ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+        }
+        .info-section h3 {
+            margin: 0 0 15px 0;
+            color: #1976D2;
+            font-size: 16px;
+        }
+        .info-section p {
+            margin: 8px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+        .info-section strong {
+            color: #333;
+        }
         .delivery-info {
             background-color: #fff9e6;
-            padding: 15px;
+            padding: 20px;
             border-radius: 4px;
             margin: 20px 0;
+            border-left: 4px solid #ff9800;
         }
-        .delivery-info strong {
+        .delivery-info h3 {
+            margin: 0 0 12px 0;
             color: #ff9800;
+            font-size: 16px;
+        }
+        .delivery-info p {
+            margin: 5px 0;
+            color: #555;
         }
         .footer {
             background-color: #f5f5f5;
@@ -135,11 +199,16 @@
             display: inline-block;
             padding: 12px 30px;
             background-color: #4CAF50;
-            color: white;
+            color: white !important;
             text-decoration: none;
             border-radius: 4px;
             margin: 20px 0;
             font-weight: 600;
+        }
+        .divider {
+            height: 1px;
+            background-color: #ddd;
+            margin: 25px 0;
         }
     </style>
 </head>
@@ -153,65 +222,113 @@
         <div class="email-content">
             <p class="greeting">Dear {{ customer_name }},</p>
             
-            <p>Thank you for your order! We're excited to deliver fresh, organic produce straight from the farm to your doorstep.</p>
+            <div class="success-message">
+                <p><strong>✓ Your order has been successfully placed!</strong></p>
+                <p>We're preparing your fresh, organic produce for delivery.</p>
+            </div>
             
             <div class="order-details">
-                <h2>Order Details</h2>
+                <h2>📋 Order Summary</h2>
                 <div class="order-info">
-                    <strong>Order Number:</strong> #{{ order_id }}
+                    <strong>Order Number:</strong>
+                    <span>#{{ order_id }}</span>
                 </div>
                 <div class="order-info">
-                    <strong>Order Date:</strong> {{ order_date }}
+                    <strong>Order Date:</strong>
+                    <span>{{ order_date }}</span>
                 </div>
                 <div class="order-info">
-                    <strong>Payment Method:</strong> {{ payment_method }}
-                </div>
-                <div class="order-info">
-                    <strong>Status:</strong> <span style="color: #ff9800;">Confirmed</span>
+                    <strong>Order Status:</strong>
+                    <span style="color: #ff9800; font-weight: 600;">● Confirmed & Processing</span>
                 </div>
             </div>
             
             <div class="items-section">
-                <h3>Order Items</h3>
+                <h3>🛒 Order Items</h3>
                 {% for item in items %}
                 <div class="item">
                     <div class="item-details">
                         <div class="item-name">{{ item.product.name }}</div>
-                        <div class="item-quantity">Quantity: {{ item.quantity }}</div>
+                        <div class="item-meta">
+                            Quantity: {{ item.quantity }} × Rs. {{ item.price }}/kg
+                        </div>
                     </div>
-                    <div class="item-price">Rs. {{ item.price }}</div>
+                    <div class="item-pricing">
+                        <div class="item-subtotal">Rs. {{ item.subtotal }}</div>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
             
-            <div class="total-section">
-                <div style="color: #666; margin-bottom: 10px;">Total Amount:</div>
-                <div class="total">Rs. {{ total_amount }}</div>
+            <div class="price-breakdown">
+                <div class="price-row">
+                    <span>Subtotal ({{ items|length }} item{{ items|length|pluralize }}):</span>
+                    <span>Rs. {{ total_amount }}</span>
+                </div>
+                <div class="price-row">
+                    <span>Delivery Fee:</span>
+                    <span>FREE</span>
+                </div>
+                <div class="price-row total">
+                    <span>Total Amount:</span>
+                    <span>Rs. {{ total_amount }}</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="info-section">
+                <h3>💳 Payment Information</h3>
+                <p><strong>Payment Method:</strong> {{ payment_method }}</p>
+                {% if 'Card' in payment_method %}
+                <p style="font-size: 13px; color: #666; margin-top: 10px;">
+                    💡 Your payment was processed securely. The amount will appear on your statement as "Farm2Home".
+                </p>
+                {% else %}
+                <p style="font-size: 13px; color: #666; margin-top: 10px;">
+                    💡 Please keep the exact amount ready. Our delivery partner will collect payment upon delivery.
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="info-section">
+                <h3>📍 Delivery Address</h3>
+                <p><strong>{{ shipping_name }}</strong></p>
+                <p>{{ shipping_address }}</p>
+                <p>{{ shipping_city }} - {{ shipping_zip }}</p>
+                <p><strong>Phone:</strong> {{ shipping_phone }}</p>
             </div>
             
             <div class="delivery-info">
-                <strong>🚚 Delivery Information:</strong><br>
-                Your fresh produce will be delivered within 24-48 hours. You will receive another email with tracking information once your order is shipped.
+                <h3>🚚 Delivery Information</h3>
+                <p><strong>Estimated Delivery:</strong> Within 24-48 hours</p>
+                <p>Your fresh produce is being carefully packed and will be delivered at your doorstep soon.</p>
+                <p style="margin-top: 12px; font-size: 13px;">
+                    You'll receive a shipping notification email with tracking details once your order is dispatched.
+                </p>
             </div>
             
-            <center>
-                <a href="http://localhost:8000/account/orders/" class="button">Track Your Order</a>
-            </center>
+            <!-- <center>
+                <a href="http://localhost:8000/account/orders/" class="button">Track Your Order →</a>
+            </center> -->
             
-            <p style="margin-top: 30px; color: #666;">
-                If you have any questions about your order, please don't hesitate to contact us.
+            <div class="divider"></div>
+            
+            <p style="color: #666; font-size: 14px; text-align: center; margin: 20px 0;">
+                Need help? Contact us at <a href="mailto:support@farm2home.com" style="color: #4CAF50;">support@farm2home.com</a><br>
+                or call us at +92 (300) 123-4567
             </p>
         </div>
         
         <div class="footer">
             <p><strong>Farm2Home</strong></p>
-            <p>Fresh Organic Produce | Farm to Your Door</p>
-            <p>
+            <p style="margin: 5px 0;">Fresh Organic Produce | Farm to Your Door</p>
+            <p style="margin: 15px 0;">
                 <a href="http://localhost:8000/">Visit Website</a> | 
                 <a href="http://localhost:8000/account/">My Account</a> | 
-                <a href="mailto:support@farm2home.com">Contact Support</a>
+                <a href="http://localhost:8000/catalog/">Shop Now</a>
             </p>
-            <p style="margin-top: 15px; font-size: 12px;">
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">
                 &copy; 2025 Farm2Home. All rights reserved.
             </p>
         </div>

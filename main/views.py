@@ -4,7 +4,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
-from .models import Product, Inventory, Customer, Order, OrderItem, Cart, Address, PasswordResetToken
+from .models import Product, Inventory, Customer, Order, OrderItem, Cart, Address, PasswordResetToken, PaymentMethod
 from .serializers import (
     ProductSerializer, ProductListSerializer, 
     ProductCatalogSerializer,
@@ -12,7 +12,7 @@ from .serializers import (
     OrderSerializer, OrderCreateSerializer, OrderSummarySerializer,
     CartSerializer, CheckoutCartItemSerializer,
     CheckoutOrderCreateSerializer, OrderConfirmationSerializer,
-    AddressSerializer
+    AddressSerializer, PaymentMethodSerializer
 )
 from .utils import send_welcome_email, send_order_confirmation_email, send_password_reset_email
 
@@ -381,10 +381,13 @@ def checkout_cart_api(request):
 
 
 @api_view(['POST'])
+@csrf_exempt
 def create_checkout_order(request):
     """
     API endpoint to create a complete order from checkout
     Handles shipping, billing, and cart items in a single transaction
+    
+    ✅ CSRF EXEMPT - This endpoint is accessible from frontend without CSRF token
     
     Expected POST data structure:
     {
@@ -424,6 +427,16 @@ def create_checkout_order(request):
     7. Clears customer's Cart
     8. Returns order confirmation data
     """
+    # Log incoming request data for debugging
+    print("=" * 60)
+    print("🛒 CREATING ORDER - Request received")
+    print("=" * 60)
+    print(f"📦 Items: {len(request.data.get('items', []))}")
+    print(f"👤 Customer ID: {request.data.get('customer_id')}")
+    print(f"📧 Email: {request.data.get('shipping', {}).get('email')}")
+    print(f"💳 Payment: {request.data.get('billing', {}).get('cardNumber', 'COD')[:4]}...")
+    print("=" * 60)
+    
     # Validate request data using CheckoutOrderCreateSerializer
     serializer = CheckoutOrderCreateSerializer(data=request.data)
     
@@ -443,6 +456,11 @@ def create_checkout_order(request):
             
             # Prepare order confirmation response
             confirmation_serializer = OrderConfirmationSerializer(order)
+            
+            print(f"✅ Order #{order.order_id} created successfully!")
+            print(f"📦 Total: Rs. {order.total_amount}")
+            print(f"🛒 Cart cleared for customer #{order.customer.customer_id}")
+            print("=" * 60)
             
             return Response(
                 confirmation_serializer.data, 
@@ -471,6 +489,10 @@ def create_checkout_order(request):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # Return validation errors if serializer validation failed
+    print("❌ Order validation failed!")
+    print(f"Errors: {serializer.errors}")
+    print("=" * 60)
+    
     return Response({
         'error': 'Invalid order data',
         'details': serializer.errors
@@ -1440,7 +1462,10 @@ def checkout(request):
 
 def checkout_payment(request):
     """Render checkout payment page"""
-    return render(request, 'checkout/payment.html')
+    from django.conf import settings
+    return render(request, 'checkout/payment.html', {
+        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLISHABLE_KEY
+    })
 
 
 def checkout_confirmation(request):
@@ -1881,4 +1906,448 @@ def get_customer_addresses_api(request):
             'status': 'error',
             'message': f'Failed to fetch addresses: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==================== PAYMENT METHOD API ENDPOINTS ====================
+
+@api_view(['GET'])
+def get_payment_methods_api(request):
+    """
+    Get all payment methods for a customer
+    GET /api/payment-methods/?customer_id=<id>
+    
+    Query Parameters:
+        - customer_id: int (required)
+    
+    Returns:
+        - 200: Success with payment methods list
+        - 400: Missing customer_id
+        - 404: Customer not found
+        - 500: Server error
+    """
+    try:
+        customer_id = request.GET.get('customer_id')
+        
+        if not customer_id:
+            return Response({
+                'status': 'error',
+                'message': 'customer_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify customer exists
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Customer not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get all payment methods for this customer
+        payment_methods = PaymentMethod.objects.filter(customer=customer)
+        serializer = PaymentMethodSerializer(payment_methods, many=True)
+        
+        return Response({
+            'status': 'success',
+            'data': serializer.data,
+            'count': payment_methods.count()
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to fetch payment methods: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def add_payment_method_api(request):
+    """
+    Add a new payment method for a customer
+    POST /api/payment-methods/add/
+    
+    Body:
+        - customer_id: int (required)
+        - payment_type: str (DEBIT/CREDIT)
+        - card_holder_name: str (required)
+        - cardNumber: str (full card number - only last 4 will be stored)
+        - expiryDate: str (MM/YY format)
+        - bank_name: str (optional)
+        - is_default: bool (optional, default False)
+    
+    Returns:
+        - 201: Payment method created successfully
+        - 400: Validation error
+        - 404: Customer not found
+        - 500: Server error
+    
+    SECURITY: Only stores last 4 digits of card number, never full card or CVV
+    """
+    try:
+        customer_id = request.data.get('customer_id')
+        
+        if not customer_id:
+            return Response({
+                'status': 'error',
+                'message': 'customer_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify customer exists
+        try:
+            customer = Customer.objects.get(customer_id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Customer not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Prepare data for serializer
+        data = request.data.copy()
+        
+        # Extract last 4 digits from card number (security measure)
+        card_number = data.get('cardNumber', '').replace(' ', '').replace('-', '')
+        if card_number and len(card_number) >= 4:
+            data['card_last_4'] = card_number[-4:]
+        else:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid card number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Split expiry date (MM/YY) into month and year
+        expiry_date = data.get('expiryDate', '')
+        if '/' in expiry_date:
+            month, year = expiry_date.split('/')
+            data['expiry_month'] = month.strip()
+            data['expiry_year'] = year.strip()
+        else:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid expiry date format. Use MM/YY'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ensure customer is set
+        data['customer'] = customer_id
+        
+        # Validate and create payment method
+        serializer = PaymentMethodSerializer(data=data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            
+            return Response({
+                'status': 'success',
+                'message': 'Payment method added successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                'status': 'error',
+                'message': 'Validation failed',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to add payment method: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+def delete_payment_method_api(request, payment_id):
+    """
+    Delete a payment method
+    DELETE /api/payment-methods/<payment_id>/delete/?customer_id=<id>
+    
+    URL Parameters:
+        - payment_id: int (required)
+    
+    Query Parameters:
+        - customer_id: int (required for ownership validation)
+    
+    Returns:
+        - 200: Payment method deleted successfully
+        - 403: Not authorized (payment method doesn't belong to customer)
+        - 404: Payment method not found
+        - 500: Server error
+    """
+    try:
+        customer_id = request.GET.get('customer_id')
+        
+        if not customer_id:
+            return Response({
+                'status': 'error',
+                'message': 'customer_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get the payment method
+        try:
+            payment_method = PaymentMethod.objects.get(payment_id=payment_id)
+        except PaymentMethod.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Payment method not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Verify ownership
+        if payment_method.customer.customer_id != int(customer_id):
+            return Response({
+                'status': 'error',
+                'message': 'You are not authorized to delete this payment method'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # If deleting default payment method, set another as default (if available)
+        if payment_method.is_default:
+            another_method = PaymentMethod.objects.filter(
+                customer=payment_method.customer
+            ).exclude(payment_id=payment_id).first()
+            
+            if another_method:
+                another_method.is_default = True
+                another_method.save()
+        
+        # Delete the payment method
+        payment_method.delete()
+        
+        return Response({
+            'status': 'success',
+            'message': 'Payment method deleted successfully'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to delete payment method: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def set_default_payment_api(request, payment_id):
+    """
+    Set a payment method as default
+    POST /api/payment-methods/<payment_id>/set-default/
+    
+    URL Parameters:
+        - payment_id: int (required)
+    
+    Body:
+        - customer_id: int (required for ownership validation)
+    
+    Returns:
+        - 200: Default payment method updated successfully
+        - 403: Not authorized
+        - 404: Payment method not found
+        - 500: Server error
+    """
+    try:
+        customer_id = request.data.get('customer_id')
+        
+        if not customer_id:
+            return Response({
+                'status': 'error',
+                'message': 'customer_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get the payment method
+        try:
+            payment_method = PaymentMethod.objects.get(payment_id=payment_id)
+        except PaymentMethod.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Payment method not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Verify ownership
+        if payment_method.customer.customer_id != int(customer_id):
+            return Response({
+                'status': 'error',
+                'message': 'You are not authorized to modify this payment method'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Set as default (model's save() will handle removing default from others)
+        payment_method.is_default = True
+        payment_method.save()
+        
+        # Serialize and return updated payment method
+        serializer = PaymentMethodSerializer(payment_method)
+        
+        return Response({
+            'status': 'success',
+            'message': 'Default payment method updated successfully',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to set default payment method: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+# ==================== STRIPE PAYMENT APIS ====================
+
+import stripe
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@api_view(['POST'])
+@csrf_exempt
+def create_payment_intent(request):
+    """
+    Create a Stripe Payment Intent for processing card payments
+    POST /api/stripe/create-payment-intent/
+    
+    Body:
+        - amount: float (required) - Amount in dollars (e.g., 450.00)
+        - currency: str (optional) - Default 'usd'
+        - customer_id: int (required)
+        - description: str (optional)
+    
+    Returns:
+        - 200: Payment Intent created successfully with client_secret
+        - 400: Invalid request
+        - 500: Server error
+    """
+    try:
+        amount = request.data.get('amount')
+        currency = request.data.get('currency', 'usd')
+        customer_id = request.data.get('customer_id')
+        description = request.data.get('description', 'Farm2Home Order')
+        
+        if not amount or not customer_id:
+            return Response({
+                'status': 'error',
+                'message': 'amount and customer_id are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Convert amount to cents (Stripe uses smallest currency unit)
+        amount_cents = int(float(amount) * 100)
+        
+        # Create Payment Intent
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency=currency,
+            description=description,
+            metadata={
+                'customer_id': str(customer_id)
+            },
+            # Automatic payment methods for card
+            automatic_payment_methods={
+                'enabled': True,
+            },
+        )
+        
+        return Response({
+            'status': 'success',
+            'clientSecret': payment_intent.client_secret,
+            'paymentIntentId': payment_intent.id
+        }, status=status.HTTP_200_OK)
+        
+    except stripe.error.StripeError as e:
+        return Response({
+            'status': 'error',
+            'message': f'Stripe error: {str(e)}'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to create payment intent: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def confirm_stripe_payment(request):
+    """
+    Confirm that a Stripe payment was successful
+    POST /api/stripe/confirm-payment/
+    
+    Body:
+        - payment_intent_id: str (required)
+    
+    Returns:
+        - 200: Payment confirmed
+        - 400: Payment failed or invalid
+        - 500: Server error
+    """
+    try:
+        payment_intent_id = request.data.get('payment_intent_id')
+        
+        if not payment_intent_id:
+            return Response({
+                'status': 'error',
+                'message': 'payment_intent_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Retrieve payment intent from Stripe
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        
+        if payment_intent.status == 'succeeded':
+            return Response({
+                'status': 'success',
+                'message': 'Payment confirmed successfully',
+                'payment_status': payment_intent.status,
+                'amount': payment_intent.amount / 100,  # Convert back to dollars
+                'currency': payment_intent.currency
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'message': f'Payment status: {payment_intent.status}',
+                'payment_status': payment_intent.status
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+    except stripe.error.StripeError as e:
+        return Response({
+            'status': 'error',
+            'message': f'Stripe error: {str(e)}'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to confirm payment: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_stripe_payment_method(request, payment_method_id):
+    """
+    Retrieve payment method details from Stripe
+    GET /api/stripe/payment-method/<payment_method_id>/
+    
+    Returns:
+        - 200: Payment method details (card last4, brand, exp_month, exp_year)
+        - 400: Invalid payment method
+        - 500: Server error
+    """
+    try:
+        # Retrieve payment method from Stripe
+        payment_method = stripe.PaymentMethod.retrieve(payment_method_id)
+        
+        return Response({
+            'status': 'success',
+            'card': {
+                'last4': payment_method.card.last4,
+                'brand': payment_method.card.brand,
+                'exp_month': payment_method.card.exp_month,
+                'exp_year': payment_method.card.exp_year
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except stripe.error.StripeError as e:
+        return Response({
+            'status': 'error',
+            'message': f'Stripe error: {str(e)}'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to retrieve payment method: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 

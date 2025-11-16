@@ -119,7 +119,8 @@ async function handleLoginSubmit(e) {
         
         const result = await response.json();
         
-        if (result.success) {
+        // Check if response was successful AND result.success is true
+        if (response.ok && result.success) {
             // Store customer data in localStorage
             localStorage.setItem('customer_id', result.customer_id);
             localStorage.setItem('customer_name', result.name);
@@ -135,12 +136,15 @@ async function handleLoginSubmit(e) {
                 window.location.href = '/account/';
             }, 1000);
         } else {
-            // Show error message
+            // Show error message (invalid credentials, account not found, etc.)
             if (typeof notifications !== 'undefined') {
                 notifications.error(result.error || 'Login failed', 'error', 'Login Error');
             } else {
                 alert(result.error || 'Login failed');
             }
+            
+            // Do NOT redirect or store data on error
+            return false;
         }
     } catch (error) {
         console.error('Login error:', error);
@@ -149,6 +153,7 @@ async function handleLoginSubmit(e) {
         } else {
             alert('Login failed. Please try again.');
         }
+        return false;
     }
     
     return false;
@@ -241,7 +246,8 @@ async function handleSignupSubmit(e) {
         
         const result = await response.json();
         
-        if (result.success) {
+        // Check if response was successful AND result.success is true
+        if (response.ok && result.success) {
             // Store customer data in localStorage
             localStorage.setItem('customer_id', result.customer_id);
             localStorage.setItem('customer_name', result.name);
@@ -257,12 +263,15 @@ async function handleSignupSubmit(e) {
                 window.location.href = '/account/';
             }, 1000);
         } else {
-            // Show error message
+            // Show error message (email already exists, phone exists, etc.)
             if (typeof notifications !== 'undefined') {
                 notifications.error(result.error || 'Signup failed', 'error', 'Signup Error');
             } else {
                 alert(result.error || 'Signup failed');
             }
+            
+            // Do NOT redirect or store data on error
+            return false;
         }
     } catch (error) {
         console.error('Signup error:', error);
@@ -271,6 +280,7 @@ async function handleSignupSubmit(e) {
         } else {
             alert('Signup failed. Please try again.');
         }
+        return false;
     }
     
     return false;

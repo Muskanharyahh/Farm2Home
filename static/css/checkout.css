@@ -491,8 +491,9 @@ body {
 }
 
 .form-group input::placeholder {
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.75);
     font-weight: 400;
+    font-style: italic;
 }
 
 .form-row {

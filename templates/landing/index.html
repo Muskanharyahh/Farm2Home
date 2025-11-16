@@ -863,21 +863,37 @@
                             localStorage.setItem('customer_name', data.name);
                             localStorage.setItem('customer_email', data.email);
                             
-                            // Show success message
-                            alert('Login successful! Welcome back, ' + data.name);
+                            // Show success message using notifications
+                            if (typeof notifications !== 'undefined') {
+                                notifications.success('Login successful! Welcome back, ' + data.name);
+                            } else {
+                                alert('✅ Login successful! Welcome back, ' + data.name);
+                            }
                             
                             // Close the modal
                             closeAuthModal();
                             
                             // Hide login and signup buttons
                             updateAuthButtonsVisibility();
+                            return; // Success - stop execution
                         } else {
                             // Show error message
-                            alert(data.error || data.message || 'Login failed. Please check your credentials.');
+                            const errorMsg = data.error || data.message || 'Login failed. Please check your credentials.';
+                            if (typeof notifications !== 'undefined') {
+                                notifications.error(errorMsg);
+                            } else {
+                                alert('❌ ' + errorMsg);
+                            }
+                            return; // Error - stop execution
                         }
                     } catch (error) {
                         console.error('Login error:', error);
-                        alert('An error occurred during login. Please try again.');
+                        if (typeof notifications !== 'undefined') {
+                            notifications.error('An error occurred during login. Please try again.');
+                        } else {
+                            alert('❌ An error occurred during login. Please try again.');
+                        }
+                        return; // Exception - stop execution
                     }
                 });
             }
@@ -980,8 +996,12 @@
                             localStorage.setItem('customer_name', data.name);
                             localStorage.setItem('customer_email', data.email);
                             
-                            // Show success message
-                            alert('✅ Signup successful! Welcome, ' + data.name + '!');
+                            // Show success message using notifications
+                            if (typeof notifications !== 'undefined') {
+                                notifications.success('Signup successfull Welcome, ' + data.name + '!');
+                            } else {
+                                alert('✅ Signup successful! Welcome, ' + data.name + '!');
+                            }
                             
                             // Close the modal
                             closeAuthModal();
@@ -991,20 +1011,32 @@
                             
                             // Reset form
                             signupFormElement.reset();
+                            return; // Success - stop execution
                         } else {
                             // Show specific error message
                             const errorMsg = data.error || data.message || 'Signup failed. Please try again.';
                             
-                            // Add emoji based on error type
-                            if (errorMsg.includes('Email already exists') || errorMsg.includes('Phone number already registered')) {
-                                alert('⚠️ ' + errorMsg);
+                            // Use notifications library if available
+                            if (typeof notifications !== 'undefined') {
+                                notifications.error(errorMsg);
                             } else {
-                                alert('❌ ' + errorMsg);
+                                // Fallback to alert with emoji
+                                if (errorMsg.includes('Email already exists') || errorMsg.includes('Phone number already registered')) {
+                                    alert('⚠️ ' + errorMsg);
+                                } else {
+                                    alert('❌ ' + errorMsg);
+                                }
                             }
+                            return; // Error - stop execution
                         }
                     } catch (error) {
                         console.error('Signup error:', error);
-                        alert('An error occurred during signup. Please try again.');
+                        if (typeof notifications !== 'undefined') {
+                            notifications.error('An error occurred during signup. Please try again.');
+                        } else {
+                            alert('❌ An error occurred during signup. Please try again.');
+                        }
+                        return; // Exception - stop execution
                     }
                 });
             }

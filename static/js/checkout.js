@@ -172,7 +172,10 @@ async function loadSavedAddresses() {
         const data = await response.json();
         console.log('📦 API Response:', data);
         
-        if (data.status === 'success' && data.addresses && data.addresses.length > 0) {
+        // API returns 'data' not 'addresses'
+        const addresses = data.data || data.addresses || [];
+        
+        if (data.status === 'success' && addresses && addresses.length > 0) {
             // Show the saved addresses dropdown
             const savedAddressGroup = document.getElementById('savedAddressGroup');
             if (savedAddressGroup) {
@@ -183,7 +186,7 @@ async function loadSavedAddresses() {
             const dropdown = document.getElementById('savedAddresses');
             dropdown.innerHTML = '<option value="">-- Select a saved address --</option>';
             
-            data.addresses.forEach(addr => {
+            addresses.forEach(addr => {
                 const option = document.createElement('option');
                 option.value = JSON.stringify(addr);
                 
@@ -198,10 +201,10 @@ async function loadSavedAddresses() {
                 dropdown.appendChild(option);
             });
             
-            console.log(`✅ Loaded ${data.addresses.length} saved address(es)`);
+            console.log(`✅ Loaded ${addresses.length} saved address(es)`);
             
             // Auto-select default address if exists
-            const defaultAddr = data.addresses.find(addr => addr.is_default);
+            const defaultAddr = addresses.find(addr => addr.is_default);
             if (defaultAddr) {
                 dropdown.value = JSON.stringify(defaultAddr);
                 fillAddressFromSaved();
@@ -513,6 +516,11 @@ async function nextStep() {
         // Step 1: Validate and collect shipping information
         if (validateShippingForm()) {
             collectShippingData();
+            
+            // Save cart and shipping data to localStorage for payment page
+            localStorage.setItem('checkoutCart', JSON.stringify(cart));
+            localStorage.setItem('shippingData', JSON.stringify(shippingData));
+            
             // Redirect to payment page
             window.location.href = '/checkout/payment/';
         }
@@ -902,12 +910,10 @@ function downloadReceipt() {
 
 /**
  * Go back button handler
- * Confirms before leaving checkout page
+ * Returns to catalog page without removing cart items
  */
 function goBack() {
-    if (confirm('Are you sure you want to go back? Your checkout progress will be lost.')) {
-        window.location.href = '/catalog/';
-    }
+    window.location.href = '/catalog/';
 }
 
 // ==================== END OF CHECKOUT SCRIPT ====================

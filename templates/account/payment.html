@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/account.css' %}">
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
 </head>
 <body>
     <!-- Header -->
@@ -35,14 +36,14 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="profile-info">
-                    <h3>AHMED KHAN</h3>
-                    <p>AHMED.KHAN@EMAIL.COM</p>
+                    <h3 id="userName">Loading...</h3>
+                    <p id="userEmail">Loading...</p>
                 </div>
             </div>
 
             <div class="stats-card">
                 <div class="stat-label">TOTAL ORDERS</div>
-                <div class="stat-value">47 Orders</div>
+                <div class="stat-value" id="totalOrders">0 Orders</div>
             </div>
 
             <nav class="sidebar-nav">
@@ -105,146 +106,46 @@
             </div>
 
             <!-- Payment Methods Grid -->
+            <!-- Payment cards will be dynamically loaded from database via account-payment.js -->
             <div class="payment-grid">
-                <!-- Payment Card 1 - HBL Debit Card (Default) -->
-                <div class="payment-card default-payment" data-payment-id="hbl-card">
-                    <div class="payment-card-header">
-                        <div class="card-icon-section">
-                            <div class="card-icon">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="default-badge-payment">
-                                <i class="fas fa-star"></i>
-                                DEFAULT
-                            </div>
-                        </div>
+                <!-- Loading indicator -->
+                <div class="payment-card" style="justify-content: center; align-items: center; min-height: 200px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6b8e23; margin-bottom: 1rem;"></i>
+                        <p style="color: #666;">Loading payment methods...</p>
                     </div>
-                    <div class="payment-card-body">
-                        <div class="card-info-row">
-                            <span class="card-label">CARD NUMBER</span>
-                            <span class="card-number">•••• •••• •••• 4242</span>
-                        </div>
-                        <div class="card-info-row">
-                            <span class="card-label">CARD HOLDER</span>
-                            <span class="card-holder">AHMED KHAN</span>
-                        </div>
-                        <div class="card-info-row">
-                            <span class="card-label">EXPIRES</span>
-                            <span class="card-expiry">12/25</span>
-                        </div>
-                        <div class="card-bank">HBL DEBIT CARD</div>
-                    </div>
-                    <div class="payment-card-footer">
-                        <button class="icon-btn-payment edit-btn-payment" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="icon-btn-payment delete-btn-payment" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Payment Card 2 - MCB Credit Card -->
-                <div class="payment-card" data-payment-id="mcb-card">
-                    <div class="payment-card-header">
-                        <div class="card-icon-section">
-                            <div class="card-icon">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="payment-card-body">
-                        <div class="card-info-row">
-                            <span class="card-label">CARD NUMBER</span>
-                            <span class="card-number">•••• •••• •••• 8888</span>
-                        </div>
-                        <div class="card-info-row">
-                            <span class="card-label">CARD HOLDER</span>
-                            <span class="card-holder">AHMED KHAN</span>
-                        </div>
-                        <div class="card-info-row">
-                            <span class="card-label">EXPIRES</span>
-                            <span class="card-expiry">08/26</span>
-                        </div>
-                        <div class="card-bank">MCB CREDIT CARD</div>
-                    </div>
-                    <div class="payment-card-footer">
-                        <button class="set-default-payment-btn">
-                            <i class="far fa-star"></i>
-                            SET AS DEFAULT
-                        </button>
-                        <div class="footer-actions">
-                            <button class="icon-btn-payment edit-btn-payment" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="icon-btn-payment delete-btn-payment" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Card 3 - JazzCash -->
-                <div class="payment-card jazzcash-card" data-payment-id="jazzcash">
-                    <div class="payment-card-header">
-                        <div class="card-icon-section">
-                            <div class="card-icon jazzcash-icon">
-                                <i class="fas fa-mobile-alt"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="payment-card-body">
-                        <div class="card-info-row">
-                            <span class="card-label">JAZZCASH ACCOUNT</span>
-                        </div>
-                        <div class="jazzcash-email">ahmed.khan@email.com</div>
-                        <div class="card-bank jazzcash-label">JAZZCASH</div>
-                    </div>
-                    <div class="payment-card-footer">
-                        <button class="set-default-payment-btn">
-                            <i class="far fa-star"></i>
-                            SET AS DEFAULT
-                        </button>
-                        <div class="footer-actions">
-                            <button class="icon-btn-payment edit-btn-payment" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="icon-btn-payment delete-btn-payment" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add New Payment Card -->
-                <div class="payment-card add-new-payment-card">
-                    <div class="add-new-payment-content">
-                        <div class="add-payment-icon">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <h3>ADD PAYMENT METHOD</h3>
-                        <p>ADD A NEW CARD OR PAYMENT OPTION</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contact Support Section -->
-            <div class="contact-support-section">
-                <div class="contact-support-card">
-                    <div class="contact-support-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <div class="contact-support-info">
-                        <h3>NEED HELP?</h3>
-                        <p>Having issues with payments? Contact our support team through the form on our website.</p>
-                    </div>
-                    <a href="{% url 'main:landing' %}#footerSection" class="contact-support-btn">
-                        <i class="fas fa-envelope"></i>
-                        CONTACT SUPPORT
-                    </a>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header" style="border-bottom: 1px solid #e5e5e5;">
+                <h2 style="color: #d32f2f; font-size: 1.25rem;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+                    DELETE PAYMENT METHOD
+                </h2>
+                <button class="modal-close" id="closeDeleteModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 2rem;">
+                <p style="color: #333; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    Are you sure you want to delete this payment method? This action cannot be undone.
+                </p>
+                <div class="modal-actions" style="gap: 1rem;">
+                    <button type="button" class="btn-cancel" id="cancelDeleteBtn" style="flex: 1;">
+                        CANCEL
+                    </button>
+                    <button type="button" class="btn-save" id="confirmDeleteBtn" style="flex: 1; background-color: #d32f2f;">
+                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                        DELETE
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Add/Edit Payment Modal -->
@@ -264,8 +165,6 @@
                             <option value="">Debit/Credit Card</option>
                             <option value="debit">Debit Card</option>
                             <option value="credit">Credit Card</option>
-                            <option value="jazzcash">JazzCash</option>
-                            <option value="easypaisa">EasyPaisa</option>
                         </select>
                     </div>
                     
@@ -316,7 +215,7 @@
 
     <script src="{% static 'js/notifications.js' %}"></script>
     <script src="{% static 'js/account.js' %}"></script>
-    <script src="{% static 'js/payment.js' %}"></script>
+    <script src="{% static 'js/account-payment.js' %}"></script>
 </body>
 </html>
 

@@ -1656,16 +1656,20 @@ if (loginFormElement) {
                 
                 // Reload cart from backend
                 await loadCartFromBackend();
+                return; // Success - stop execution
             } else {
+                // Error case - show error and stop
                 if (typeof notifications !== 'undefined') {
                     notifications.error(data.error || data.message || 'Login failed. Please check your credentials.');
                 }
+                return; // Error - stop execution
             }
         } catch (error) {
             console.error('Login error:', error);
             if (typeof notifications !== 'undefined') {
                 notifications.error('An error occurred during login. Please try again.');
             }
+            return; // Exception - stop execution
         }
     });
 }
@@ -1735,16 +1739,20 @@ if (signupFormElement) {
                 
                 // Reload cart from backend
                 await loadCartFromBackend();
+                return; // Success - stop execution
             } else {
+                // Error case - show error and stop
                 if (typeof notifications !== 'undefined') {
                     notifications.error(data.error || data.message || 'Signup failed. Please try again.');
                 }
+                return; // Error - stop execution, don't proceed
             }
         } catch (error) {
             console.error('Signup error:', error);
             if (typeof notifications !== 'undefined') {
                 notifications.error('An error occurred during signup. Please try again.');
             }
+            return; // Exception - stop execution
         }
     });
 }

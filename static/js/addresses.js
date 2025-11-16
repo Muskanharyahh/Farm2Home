@@ -119,6 +119,8 @@ function renderAddressesUI(addresses) {
             <p>SAVE A NEW DELIVERY LOCATION</p>
         </div>
     `;
+    // Add click event listener to the newly created card
+    addNewCard.addEventListener('click', () => showAddAddressModal());
     container.appendChild(addNewCard);
 }
 

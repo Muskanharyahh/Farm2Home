@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.shortcuts import render
 from . import views
 
 app_name = 'main'
@@ -52,6 +53,19 @@ urlpatterns = [
     path('api/customer/addresses/<int:address_id>/delete/', views.delete_address_api, name='delete_address_api'),
     path('api/customer/addresses/<int:address_id>/set-default/', views.set_default_address_api, name='set_default_address_api'),
     
+    # Payment Method API endpoints
+    # These endpoints handle CRUD operations for customer payment methods
+    path('api/payment-methods/', views.get_payment_methods_api, name='get_payment_methods_api'),
+    path('api/payment-methods/add/', views.add_payment_method_api, name='add_payment_method_api'),
+    path('api/payment-methods/<int:payment_id>/delete/', views.delete_payment_method_api, name='delete_payment_method_api'),
+    path('api/payment-methods/<int:payment_id>/set-default/', views.set_default_payment_api, name='set_default_payment_api'),
+    
+    # Stripe Payment API endpoints (TEST MODE)
+    # These endpoints handle Stripe payment processing in test mode
+    path('api/stripe/create-payment-intent/', views.create_payment_intent, name='create_payment_intent'),
+    path('api/stripe/confirm-payment/', views.confirm_stripe_payment, name='confirm_stripe_payment'),
+    path('api/stripe/payment-method/<str:payment_method_id>/', views.get_stripe_payment_method, name='get_stripe_payment_method'),
+    
     # ==================== HTML PAGE ROUTES ====================
     
     # Home and landing
@@ -81,4 +95,7 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('checkout/payment/', views.checkout_payment, name='checkout_payment'),
     path('checkout/confirmation/', views.checkout_confirmation, name='checkout_confirmation'),
+    
+    # Test page (development only)
+    path('test-order/', lambda request: render(request, 'test_order.html'), name='test_order'),
 ]
