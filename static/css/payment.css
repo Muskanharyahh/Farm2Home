@@ -638,9 +638,9 @@
 }
 
 .payment-form .input-wrapper:focus-within {
-    border-color: #8fbc3e;
+    border-color: #5dbf4d;
     background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 0 4px rgba(143, 188, 62, 0.2);
+    box-shadow: 0 0 0 4px rgba(93, 191, 77, 0.2);
 }
 
 /* Stripe Element Styling */
@@ -689,9 +689,9 @@
 }
 
 #card-element.StripeElement--focus {
-    border-color: #8fbc3e;
+    border-color: #5dbf4d;
     background: rgba(255, 255, 255, 1);
-    box-shadow: 0 0 0 4px rgba(143, 188, 62, 0.2);
+    box-shadow: 0 0 0 4px rgba(93, 191, 77, 0.2);
 }
 
 #card-element.StripeElement--invalid {
@@ -825,7 +825,7 @@
 
 .cod-content li:before {
     content: "✓";
-    color: #a8d75f;
+    color: #7dd962;
     font-weight: 700;
     font-size: 1rem;
 }
@@ -937,7 +937,7 @@
 
 .purchase-btn {
     padding: 16px 55px;
-    background: #8fbc3e;
+    background: #5dbf4d;
     color: white;
     border: none;
     border-radius: 8px;
@@ -949,14 +949,14 @@
     transition: all 0.3s ease;
     font-family: 'Poppins', sans-serif;
     min-width: auto;
-    box-shadow: 0 5px 15px rgba(143, 188, 62, 0.3);
+    box-shadow: 0 5px 15px rgba(93, 191, 77, 0.3);
     white-space: nowrap;
 }
 
 .purchase-btn:hover {
-    background: #a8d75f;
+    background: #7dd962;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(143, 188, 62, 0.4);
+    box-shadow: 0 8px 20px rgba(93, 191, 77, 0.4);
 }
 
 .purchase-btn:active {

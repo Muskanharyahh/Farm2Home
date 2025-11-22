@@ -64,256 +64,19 @@
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features-section" id="benefits">
-        <div class="container">
-            <div class="section-header">
-                <h2>Why Choose Farm2Home?</h2>
-                <p>Direct from farm to your table with guaranteed freshness</p>
-            </div>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <h3>100% Organic</h3>
-                    <p>Certified organic produce grown without harmful pesticides or chemicals</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-truck-fast"></i>
-                    </div>
-                    <h3>Fast Delivery</h3>
-                    <p>Farm-fresh products delivered to your doorstep within 24 hours</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-handshake"></i>
-                    </div>
-                    <h3>Fair Trade</h3>
-                    <p>Supporting local farmers with fair prices and sustainable practices</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-check"></i>
-                    </div>
-                    <h3>Quality Assured</h3>
-                    <p>Every product is inspected for quality and freshness before delivery</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Products Section -->
-    <section class="products-section" id="products">
-        <div class="container">
-            <div class="section-header">
-                <h2>Fresh Products</h2>
-                <p>Explore our selection of farm-fresh organic produce</p>
-            </div>
-            
-            <div class="products-grid">
-                <div class="product-card">
-                    <img src="{% static 'images/vegetables/tomato.png' %}" alt="Fresh Tomatoes">
-                    <h3>Fresh Tomatoes</h3>
-                    <p>Juicy and ripe tomatoes</p>
-                </div>
-                
-                <div class="product-card">
-                    <img src="{% static 'images/vegetables/carrot.png' %}" alt="Organic Carrots">
-                    <h3>Organic Carrots</h3>
-                    <p>Crunchy and sweet carrots</p>
-                </div>
-                
-                <div class="product-card">
-                    <img src="{% static 'images/fruits/pineapple.png' %}" alt="Tropical Pineapple">
-                    <h3>Tropical Pineapple</h3>
-                    <p>Sweet and juicy pineapples</p>
-                </div>
-                
-                <div class="product-card">
-                    <img src="{% static 'images/herbs/basil.png' %}" alt="Fresh Basil">
-                    <h3>Fresh Basil</h3>
-                    <p>Aromatic herb for cooking</p>
-                </div>
-            </div>
-            
-            <div class="products-cta">
-                <a href="{% url 'main:catalog' %}" class="btn-primary-large">
-                    Shop All Products
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-    </section>
-
     <!-- Featured Categories Section -->
     <section class="featured-categories-section" id="about">
-        <div class="container">
-            <div class="section-header">
-                <h2>Featured Categories</h2>
-                <a href="{% url 'main:catalog' %}" class="view-all-link">View All Categories →</a>
-            </div>
-            
-            <div class="featured-content-wrapper">
-                <!-- Left Side - Background Image -->
-                <div class="featured-image-container">
-                    <img src="{% static 'images/featureprod.png' %}" alt="Featured Products" class="featured-bg-image">
-                    
-                    <!-- Category Cards Overlay -->
-                    <div class="category-cards-overlay">
-                        <a href="{% url 'main:catalog' %}" class="category-card circular">
-                            <div class="category-circle">
-                                <img src="{% static 'images/vegetables/carrot.png' %}" alt="Fresh Vegetables">
-                            </div>
-                            <h3>Vegetables</h3>
-                        </a>
-                        
-                        <a href="{% url 'main:catalog' %}" class="category-card circular">
-                            <div class="category-circle">
-                                <img src="{% static 'images/fruits/pineapple.png' %}" alt="Fresh Fruits">
-                            </div>
-                            <h3>Fresh Fruits</h3>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Promotional Cards Section -->
-    <section class="promo-section">
-        <div class="container">
-            <div class="promo-cards-grid">
-                <!-- Discount Card 1 -->
-                <div class="discount-card discount-card-1">
-                    <div class="discount-badge">Flat 20% Discount</div>
-                    <h3>Purely Fresh Vegetables</h3>
-                    <p>Premium quality vegetables at special price</p>
-                    <a href="{% url 'main:catalog' %}" class="promo-btn">
-                        Shop Now →
-                    </a>
-                    <div class="promo-image">
-                        <img src="{% static 'images/vegetables/carrot.png' %}" alt="Fresh Vegetables">
-                    </div>
-                </div>
+        <!-- Full Width Featured Image -->
+        <div class="featured-content-wrapper">
+            <div class="featured-image-container">
+                <img src="{% static 'images/featureprod.jpg' %}" alt="Featured Products" class="featured-bg-image">
                 
-                <!-- Discount Card 2 -->
-                <div class="discount-card discount-card-2">
-                    <div class="discount-badge">Flat 25% Discount</div>
-                    <h3>Fresh Fruits, Pure Quality</h3>
-                    <p>Handpicked fresh fruits directly from farms</p>
-                    <a href="{% url 'main:catalog' %}" class="promo-btn">
-                        Shop Now →
-                    </a>
-                    <div class="promo-image">
-                        <img src="{% static 'images/fruits/pineapple.png' %}" alt="Fresh Fruits">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Summer Discount Section -->
-    <section class="summer-discount-section">
-        <div class="container">
-            <div class="summer-discount-card">
-                <div class="discount-content">
-                    <h2>Summer Discount</h2>
-                    <p>SPECIAL OFFER ON FRESH PRODUCE</p>
-                    
-                    <div class="countdown-timer">
-                        <div class="timer-item">
-                            <span class="timer-number">04</span>
-                            <span class="timer-label">Days</span>
-                        </div>
-                        <div class="timer-item">
-                            <span class="timer-number">14</span>
-                            <span class="timer-label">Hours</span>
-                        </div>
-                        <div class="timer-item">
-                            <span class="timer-number">48</span>
-                            <span class="timer-label">Minutes</span>
-                        </div>
-                        <div class="timer-item">
-                            <span class="timer-number">18</span>
-                            <span class="timer-label">Seconds</span>
-                        </div>
-                    </div>
-                    
-                    <a href="{% url 'main:catalog' %}" class="summer-btn">
+                <!-- Shop Now Button Overlay -->
+                <div class="featured-cart-button-overlay">
+                    <a href="{% url 'main:catalog' %}" class="featured-cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
                         Shop Now
                     </a>
-                </div>
-                <div class="discount-image">
-                    <img src="{% static 'images/vegetables/tomato.png' %}" alt="Summer Vegetables">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Deals of the Day Section -->
-    <section class="deals-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Deals of the Day</h2>
-            </div>
-            
-            <div class="deals-grid">
-                <div class="deal-card">
-                    <div class="deal-image">
-                        <img src="{% static 'images/vegetables/tomato.png' %}" alt="Fresh Tomatoes">
-                    </div>
-                    <h4>Fresh Tomatoes</h4>
-                    <div class="deal-price">
-                        <span class="original-price">Rs. 350</span>
-                        <span class="deal-price-value">Rs. 199</span>
-                    </div>
-                    <div class="deal-discount">Save 43%</div>
-                    <button class="deal-btn">Add to Cart</button>
-                </div>
-                
-                <div class="deal-card">
-                    <div class="deal-image">
-                        <img src="{% static 'images/vegetables/carrot.png' %}" alt="Organic Carrots">
-                    </div>
-                    <h4>Organic Carrots</h4>
-                    <div class="deal-price">
-                        <span class="original-price">Rs. 280</span>
-                        <span class="deal-price-value">Rs. 179</span>
-                    </div>
-                    <div class="deal-discount">Save 36%</div>
-                    <button class="deal-btn">Add to Cart</button>
-                </div>
-                
-                <div class="deal-card">
-                    <div class="deal-image">
-                        <img src="{% static 'images/fruits/pineapple.png' %}" alt="Tropical Pineapple">
-                    </div>
-                    <h4>Tropical Pineapple</h4>
-                    <div class="deal-price">
-                        <span class="original-price">Rs. 450</span>
-                        <span class="deal-price-value">Rs. 299</span>
-                    </div>
-                    <div class="deal-discount">Save 34%</div>
-                    <button class="deal-btn">Add to Cart</button>
-                </div>
-                
-                <div class="deal-card">
-                    <div class="deal-image">
-                        <img src="{% static 'images/herbs/basil.png' %}" alt="Fresh Basil">
-                    </div>
-                    <h4>Fresh Basil</h4>
-                    <div class="deal-price">
-                        <span class="original-price">Rs. 180</span>
-                        <span class="deal-price-value">Rs. 119</span>
-                    </div>
-                    <div class="deal-discount">Save 34%</div>
-                    <button class="deal-btn">Add to Cart</button>
                 </div>
             </div>
         </div>
@@ -615,11 +378,44 @@
         </div>
     </section>
 
-    <!-- Farm Investment Section with Image -->
-    <section class="farm-investment-section" id="farmInvestmentSection">
+    <!-- Why Farm2Home -->
+    <section class="why-farm2home-section" id="whyFarm2HomeSection">
         <!-- Coin Falling Animation -->
         <div id="coinAnimation" class="coin-animation-container"></div>
-        <!-- Text will be added here later -->
+        
+        <!-- Why Farm2Home Content Overlay -->
+        <div class="why-farm2home-content-overlay">
+            <div class="why-left-content">
+                <h2 class="why-title">Why Choose Farm2Home?</h2>
+                <p class="why-subtitle">Direct from farm to your table with guaranteed freshness</p>
+            </div>
+            
+            <div class="why-features">
+                <div class="why-feature">
+                    <div class="feature-icon-circle">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h4>100% Organic</h4>
+                    <p>Certified organic produce grown without harmful pesticides or chemicals</p>
+                </div>
+                
+                <div class="why-feature">
+                    <div class="feature-icon-circle">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h4>Fast Delivery</h4>
+                    <p>Farm-fresh products delivered to your doorstep within 24 hours</p>
+                </div>
+                
+                <div class="why-feature">
+                    <div class="feature-icon-circle">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h4>Fair Trade</h4>
+                    <p>Supporting local farmers with fair prices and sustainable practices</p>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
@@ -686,12 +482,12 @@
         aboutSection.style.backgroundPosition = "top center";
         aboutSection.style.backgroundRepeat = "no-repeat";
 
-        // Apply farm investment section background image
-        const farmSection = document.getElementById('farmInvestmentSection');
-        farmSection.style.backgroundImage = "url('{% static 'images/footer.png' %}')";
-        farmSection.style.backgroundSize = "100% auto";
-        farmSection.style.backgroundPosition = "top center";
-        farmSection.style.backgroundRepeat = "no-repeat";
+        // Apply why farm2home section background image
+        const whySection = document.getElementById('whyFarm2HomeSection');
+        whySection.style.backgroundImage = "url('{% static 'images/whyfarm2home.png' %}')";
+        whySection.style.backgroundSize = "100% auto";
+        whySection.style.backgroundPosition = "top center";
+        whySection.style.backgroundRepeat = "no-repeat";
 
         // ================================
         // FRESH AUTH MODAL FUNCTIONS
@@ -1255,7 +1051,7 @@
         let coinAnimationPlayed = false;
 
         function playFarmInvestmentAnimation() {
-            const section = document.getElementById('farmInvestmentSection');
+            const section = document.getElementById('whyFarm2HomeSection');
             const sectionTop = section.getBoundingClientRect().top;
             const windowHeight = window.innerHeight;
 

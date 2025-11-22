@@ -13,8 +13,8 @@
     --primary-teal: #3d9c9c;
     --light-teal: #5faea9;
     --dark-teal: #2d7a7a;
-    --green: #8fbc3e;
-    --light-green: #a8d75f;
+    --green: #5dbf4d;
+    --light-green: #7dd962;
     --bg-white: #ffffff;
     --text-dark: #333333;
     --text-gray: #666666;
@@ -567,7 +567,7 @@ body {
 .continue-btn {
     width: 100%;
     padding: 18px 28px;
-    background: linear-gradient(135deg, var(--green) 0%, var(--light-green) 100%);
+    background: #5dbf4d;
     color: white;
     border: none;
     border-radius: 4px;
@@ -578,13 +578,14 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     margin-top: 30px;
-    box-shadow: 0 8px 20px rgba(143, 188, 62, 0.4);
+    box-shadow: 0 8px 20px rgba(93, 191, 77, 0.4);
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .continue-btn:hover {
+    background: #4da83d;
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(143, 188, 62, 0.5);
+    box-shadow: 0 12px 30px rgba(93, 191, 77, 0.5);
 }
 
 .continue-btn:active {
@@ -765,7 +766,7 @@ body {
     flex: 1;
     max-width: 180px;
     padding: 16px 24px;
-    background: linear-gradient(135deg, #8fbc3e 0%, #a8d75f 100%);
+    background: #5dbf4d;
     border: none;
     border-radius: 12px;
     color: white;
@@ -776,13 +777,13 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Poppins', sans-serif;
-    box-shadow: 0 6px 20px rgba(143, 188, 62, 0.3);
+    box-shadow: 0 6px 20px rgba(93, 191, 77, 0.3);
 }
 
 .place-order-btn:hover {
-    background: linear-gradient(135deg, #a8d75f 0%, #8fbc3e 100%);
+    background: #4da83d;
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(143, 188, 62, 0.4);
+    box-shadow: 0 10px 30px rgba(93, 191, 77, 0.4);
 }
 
 .place-order-btn:active {
@@ -818,6 +819,7 @@ body {
     .place-order-btn {
         max-width: 100%;
         padding: 14px 20px;
+        box-shadow: 0 8px 20px rgba(93, 191, 77, 0.3);
     }
 }
 
@@ -858,7 +860,7 @@ body {
     font-size: 50px;
     color: white;
     margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(143, 188, 62, 0.4);
+    box-shadow: 0 10px 30px rgba(93, 191, 77, 0.4);
 }
 
 .confirmation-content h3 {
@@ -933,50 +935,194 @@ body {
     border-color: white;
 }
 
+/* Payment Method Toggle Buttons */
+.payment-toggle {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: 2px solid rgba(139, 203, 196, 0.5);
+    border-radius: 8px;
+    color: rgba(139, 203, 196, 0.8);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+.toggle-btn i {
+    font-size: 1rem;
+}
+
+.toggle-btn.active {
+    background: rgba(139, 203, 196, 0.15);
+    border-color: rgba(139, 203, 196, 0.8);
+    color: #5dbbb0;
+}
+
+.toggle-btn:hover {
+    background: rgba(139, 203, 196, 0.1);
+    border-color: rgba(139, 203, 196, 0.8);
+}
+
 /* ============ CARD DISPLAY STANDARDS ============ */
-/* For consistency across checkout and payment pages */
+/* Modern card design matching the reference */
 .card-display,
 .card-container {
-    background: linear-gradient(135deg, #5DBBB0 0%, #7DD4C7 100%);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, rgba(139, 203, 196, 0.85) 0%, rgba(115, 186, 180, 0.9) 100%);
     border-radius: 20px;
-    padding: 50px;
+    padding: 2.5rem;
     color: white;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
     overflow: hidden;
-    aspect-ratio: 1.55 / 1;
     width: 100%;
-    max-width: 550px;
-    height: auto;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15), inset 0 0 30px rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    max-width: 380px;
+    min-height: 220px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    margin-bottom: 2rem;
+}
+
+.card-chip-wrapper {
+    margin-bottom: 2.5rem;
+}
+
+.card-chip-icon {
+    width: 52px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-chip-icon i {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.card-logo {
+    position: absolute;
+    top: 2.5rem;
+    right: 2.5rem;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 3px;
+    opacity: 0.95;
 }
 
 .card-number {
-    font-size: 2.5rem;
-    letter-spacing: 8px;
-    margin-bottom: 35px;
-    font-weight: 500;
+    font-size: 1.4rem;
+    letter-spacing: 5px;
+    margin-bottom: 2rem;
+    font-weight: 400;
     color: white;
 }
 
-.card-detail-label {
+.card-bottom-row {
+    display: flex;
+    gap: 2.5rem;
+    align-items: flex-start;
+}
+
+.card-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.card-label-text {
+    font-size: 0.65rem;
+    opacity: 0.85;
+    font-weight: 500;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.card-value-text {
     font-size: 1rem;
-    letter-spacing: 1px;
-    opacity: 0.9;
     font-weight: 500;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
+    color: white;
 }
 
-.card-detail-value {
-    font-size: 1.25rem;
-    font-weight: 500;
-    letter-spacing: 2px;
-    color: white;
+/* Form styling */
+.payment-form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1.5px solid rgba(139, 203, 196, 0.3);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: rgba(139, 203, 196, 0.8);
+    box-shadow: 0 0 0 3px rgba(139, 203, 196, 0.1);
+}
+
+.form-row-inline {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.checkbox-group {
+    margin: 1rem 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #8bccbc;
 }
 
 /* Responsive

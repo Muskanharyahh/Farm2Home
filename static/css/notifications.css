@@ -97,7 +97,7 @@
 
 /* Notification Types */
 .notification.success .notification-icon {
-    background: linear-gradient(135deg, #8fbc3e, #a8d75f);
+    background: linear-gradient(135deg, #5dbf4d, #7dd962);
 }
 
 .notification.error .notification-icon {
@@ -114,7 +114,7 @@
 
 /* Success notification */
 .notification.success {
-    border-left: 4px solid #8fbc3e;
+    border-left: 4px solid #5dbf4d;
 }
 
 .notification.success .notification-title {

@@ -68,37 +68,28 @@
                     <div class="payment-method active" id="cardPayment">
                         <!-- Credit Card Display -->
                         <div class="card-display" id="cardDisplay">
-                            <!-- Top Row: Chip and Logo -->
-                            <div class="card-top">
-                                <div class="card-chip">
-                                    <svg width="40" height="32" viewBox="0 0 40 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="2" y="2" width="8" height="8" fill="rgba(255,255,255,0.3)" rx="1"/>
-                                        <rect x="2" y="12" width="8" height="8" fill="rgba(255,255,255,0.3)" rx="1"/>
-                                        <rect x="12" y="2" width="8" height="8" fill="rgba(255,255,255,0.3)" rx="1"/>
-                                        <rect x="12" y="12" width="8" height="8" fill="rgba(255,255,255,0.3)" rx="1"/>
-                                        <rect x="22" y="2" width="8" height="8" fill="rgba(255,255,255,0.3)" rx="1"/>
-                                        <rect x="22" y="12" width="8" height="8" fill="rgba(255,255,255,0.3)" rx="1"/>
-                                    </svg>
+                            <div class="card-chip-wrapper">
+                                <div class="card-chip-icon">
+                                    <i class="fas fa-sim-card"></i>
                                 </div>
-                                <div class="card-logo" id="cardLogo">VISA</div>
                             </div>
                             
-                            <!-- Middle: Card Number -->
-                            <div class="card-number" id="displayCardNumber">•••• •••• •••• ••••</div>
+                            <div class="card-logo" id="cardLogo">VISA</div>
                             
-                            <!-- Bottom Row: Details -->
-                            <div class="card-details">
-                                <div class="card-detail-item">
-                                    <span class="card-detail-label">Cardholder Name</span>
-                                    <span class="card-detail-value" id="displayCardName">Your Name</span>
+                            <div class="card-number" id="displayCardNumber">5790 2533 6570 3631</div>
+                            
+                            <div class="card-bottom-row">
+                                <div class="card-info-group">
+                                    <span class="card-label-text">Owner Name</span>
+                                    <span class="card-value-text" id="displayCardName">Ahmed Khan</span>
                                 </div>
-                                <div class="card-detail-item">
-                                    <span class="card-detail-label">Expiry</span>
-                                    <span class="card-detail-value" id="displayExpiryDate">MM/YY</span>
+                                <div class="card-info-group">
+                                    <span class="card-label-text">Exp</span>
+                                    <span class="card-value-text" id="displayExpiryDate">06/27</span>
                                 </div>
-                                <div class="card-detail-item">
-                                    <span class="card-detail-label">CVV</span>
-                                    <span class="card-detail-value" id="displayCVV">•••</span>
+                                <div class="card-info-group">
+                                    <span class="card-label-text">CVV</span>
+                                    <span class="card-value-text" id="displayCVV">262</span>
                                 </div>
                             </div>
                         </div>
@@ -107,14 +98,14 @@
                             <div class="form-group">
                                 <label>CARD HOLDER NAME</label>
                                 <div class="input-wrapper">
-                                    <input type="text" id="cardName" placeholder="Anne Jenny" required>
+                                    <input type="text" id="cardName" placeholder="Ahmed Khan" required>
                                 </div>
                             </div>
 
                             <!-- Stripe Card Element Container -->
                             <div class="form-group">
                                 <label>CARD DETAILS (SECURE)</label>
-                                <div id="card-element" style="background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 8px;">
+                                <div id="card-element" style="background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 12px;">
                                     <!-- Stripe Card Element will be mounted here -->
                                 </div>
                                 <div id="card-errors" role="alert" style="color: #fa755a; margin-top: 8px; font-size: 14px;"></div>
@@ -123,7 +114,7 @@
                             <div class="payment-footer">
                                 <div class="total-section">
                                     <span class="total-label">Total:</span>
-                                    <span class="total-amount" id="cardTotal">$727.00</span>
+                                    <span class="total-amount" id="cardTotal">PKR 0.00</span>
                                 </div>
                                 <button type="button" class="purchase-btn" onclick="processPayment('card')">
                                     PURCHASE
@@ -155,14 +146,14 @@
                                 <!-- Total Amount -->
                                 <div class="cod-total">
                                     <span class="label">Total</span>
-                                    <span class="amount" id="codTotal">$0.00</span>
+                                    <span class="amount" id="codTotal">RS 0.00</span>
                                 </div>
                             </div>
 
                             <div class="payment-footer">
                                 <div class="total-section">
                                     <span class="total-label">Order Total:</span>
-                                    <span class="total-amount" id="codOrderTotal">$0.00</span>
+                                    <span class="total-amount" id="codOrderTotal">PKR 0.00</span>
                                 </div>
                                 <button type="button" class="purchase-btn" onclick="processPayment('cod')">
                                     CONFIRM ORDER

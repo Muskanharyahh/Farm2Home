@@ -633,7 +633,7 @@ function switchPaymentMethod(method) {
 // Update total
 function updateTotal() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const totalFormatted = `$${total.toFixed(2)}`;
+    const totalFormatted = `PKR ${total.toFixed(2)}`;
     
     // Update COD totals
     const codTotalElement = document.getElementById('codTotal');
@@ -665,7 +665,7 @@ function setupCardFormatting() {
 
 // Update card display
 function updateCardDisplay() {
-    const cardName = document.getElementById('cardName')?.value || 'Your Name';
+    const cardName = document.getElementById('cardName')?.value || 'Ahmed Khan';
     const displayNameElement = document.getElementById('displayCardName');
     
     if (displayNameElement) {

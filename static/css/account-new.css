@@ -15,8 +15,8 @@
     --pastel-green-1: #E8F0E5;
     --pastel-green-2: #D8E8D0;
     --pastel-green-3: #B5CBA2;
-    --primary-green: #8FBC3E;
-    --dark-green: #6e8b3d;
+    --primary-green: #5dbf4d;
+    --dark-green: #4da83d;
     
     /* Neutrals */
     --white: #ffffff;
@@ -144,7 +144,7 @@ body {
     color: var(--white);
     font-size: 2rem;
     margin: 0 auto 1rem;
-    box-shadow: 0 4px 15px rgba(143, 188, 62, 0.3);
+    box-shadow: 0 4px 15px rgba(93, 191, 77, 0.3);
 }
 
 .profile-info {
@@ -226,10 +226,10 @@ body {
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, rgba(143, 188, 62, 0.15) 0%, rgba(181, 203, 162, 0.25) 100%);
+    background: linear-gradient(135deg, rgba(93, 191, 77, 0.15) 0%, rgba(93, 191, 77, 0.25) 100%);
     color: var(--primary-green);
     font-weight: 500;
-    box-shadow: 0 2px 8px rgba(143, 188, 62, 0.2);
+    box-shadow: 0 2px 8px rgba(93, 191, 77, 0.2);
 }
 
 .nav-item.active i {

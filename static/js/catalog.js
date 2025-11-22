@@ -318,10 +318,21 @@ function setupEventListeners() {
                 }
                 return;
             }
+            
+            // Add cart animation
+            checkoutBtn.classList.add('animate');
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                checkoutBtn.classList.remove('animate');
+            }, 800);
+            
             // Save cart to localStorage before redirecting
-            localStorage.setItem('checkoutCart', JSON.stringify(cart));
-            // Redirect to checkout page
-            window.location.href = '/checkout/';
+            setTimeout(() => {
+                localStorage.setItem('checkoutCart', JSON.stringify(cart));
+                // Redirect to checkout page
+                window.location.href = '/checkout/';
+            }, 600);
         });
         console.log('Checkout button listener attached');
     }
